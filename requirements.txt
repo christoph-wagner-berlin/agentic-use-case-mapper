@@ -6,3 +6,4 @@ duckdb
 click
 streamlit
 plotly
+pyyaml

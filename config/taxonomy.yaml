@@ -1,0 +1,91 @@
+# Taxonomy of agentic-AI categories and tools (REQUIREMENTS.md section 2.1).
+# Extend this file to add new categories/tools without touching code.
+categories:
+  - name: Coding/dev agents
+    tools:
+      - name: Claude Code
+        vendor: Anthropic
+      - name: GitHub Copilot Workspace
+        vendor: GitHub (Microsoft)
+      - name: Cursor
+        vendor: Anysphere
+      - name: Cline
+        vendor: Cline Bot Inc.
+      - name: Aider
+        vendor: Open Source
+      - name: OpenAI Codex CLI
+        vendor: OpenAI
+      - name: Devin
+        vendor: Cognition
+
+  - name: General-purpose/browser agents
+    tools:
+      - name: Claude with computer use
+        vendor: Anthropic
+      - name: OpenAI Operator/ChatGPT agent mode
+        vendor: OpenAI
+      - name: Google Project Mariner
+        vendor: Google DeepMind
+      - name: Manus
+        vendor: Butterfly Effect
+
+  - name: Research/multi-step task agents
+    tools:
+      - name: Perplexity
+        vendor: Perplexity AI
+      - name: ChatGPT Deep Research
+        vendor: OpenAI
+      - name: Claude Research mode
+        vendor: Anthropic
+      - name: AutoGPT/BabyAGI (legacy)
+        vendor: Open Source
+
+  - name: Enterprise/workflow agents
+    tools:
+      - name: LangChain/LangGraph
+        vendor: LangChain Inc.
+      - name: CrewAI
+        vendor: CrewAI Inc.
+      - name: AutoGen
+        vendor: Microsoft
+      - name: OpenAI Assistants API/Agents SDK
+        vendor: OpenAI
+      - name: Claude Agent SDK
+        vendor: Anthropic
+
+# Canonical industry list for target_industries (use_cases & company_case_studies).
+# Free text is still accepted (extensible per REQUIREMENTS.md NFR2) -- this is the
+# suggested/default set shown in the UI, not a hard enum.
+industries:
+  - Software/Technology
+  - Financial Services
+  - Insurance
+  - Healthcare
+  - Retail/E-commerce
+  - Automotive
+  - Energy/Utilities
+  - Manufacturing/Industrial
+  - Logistics/Transportation
+  - Telecommunications
+  - Media/Marketing
+  - Professional Services/Consulting
+  - Education/Academia
+  - Public Sector
+  - Cross-industry
+
+# Canonical business-function/department list for target_departments.
+# Same convention as industries above: suggested set, still free text under the hood.
+departments:
+  - Sales
+  - After-Sales/Service
+  - Marketing
+  - Customer Support
+  - IT
+  - R&D/Engineering
+  - Manufacturing/Production
+  - Supply Chain/Operations
+  - Procurement
+  - Finance
+  - HR
+  - Legal/Compliance
+  - Cross-functional
