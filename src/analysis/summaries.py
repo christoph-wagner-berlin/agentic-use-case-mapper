@@ -305,3 +305,62 @@ def market_context_by_category(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
         category: group.sort_values("metric")
         for category, group in df.groupby("context_category")
     }
+
+
+def maturity_readiness(df: pd.DataFrame, group_column: str, explode: bool = False) -> pd.DataFrame:
+    """Per-group share of use cases at mainstream/enterprise-standard maturity -- a proxy for
+    "already proven, ready to build the next use case on" rather than still-experimental."""
+    work = df[[group_column, "maturity"]].copy()
+    if explode:
+        work[group_column] = work[group_column].str.split(";")
+        work = work.explode(group_column)
+        work[group_column] = work[group_column].str.strip()
+    work = work[work[group_column].notna() & (work[group_column] != "")]
+    work["is_mature"] = work["maturity"].isin(["mainstream", "enterprise-standard"])
+    grouped = (
+        work.groupby(group_column)["is_mature"]
+        .agg(total_count="size", mature_count="sum")
+        .reset_index()
+    )
+    grouped["maturity_readiness_pct"] = (grouped["mature_count"] / grouped["total_count"]).round(3)
+    return grouped.sort_values("maturity_readiness_pct", ascending=False)
+
+
+def opportunity_finder(df: pd.DataFrame, min_department_score: float = 2.7, max_local_count: int = 1) -> pd.DataFrame:
+    """Industries with near-zero coverage of a department pattern that scores well globally
+    elsewhere -- a proven-valuable use-case type this industry doesn't have yet.
+
+    Heuristic, not market sizing: min_department_score filters to department patterns proven
+    valuable across the dataset as a whole; max_local_count catches industries barely (or not
+    at all) applying that pattern today.
+    """
+    dept_scores = avg_score_by_department(df).set_index("department")["avg_business_value_score"]
+    matrix = industry_department_matrix(df)
+    all_industries = sorted(_explode_tags(df["target_industries"]).unique())
+
+    rows = []
+    for industry in all_industries:
+        covered = matrix[matrix["industry"] == industry].set_index("department")["count"]
+        for department, score in dept_scores.items():
+            if score < min_department_score:
+                continue
+            current = int(covered.get(department, 0))
+            if current <= max_local_count:
+                rows.append(
+                    {
+                        "industry": industry,
+                        "department": department,
+                        "current_count": current,
+                        "department_global_avg_score": score,
+                    }
+                )
+    return pd.DataFrame(rows).sort_values(
+        ["department_global_avg_score", "industry"], ascending=[False, True]
+    )
+
+
+def scaled_production_counts_by_industry(df: pd.DataFrame) -> pd.DataFrame:
+    """Count of company_case_studies at deployment_status == 'scaled/production' per industry --
+    real-world corroboration for maturity, alongside (not instead of) the curated `maturity` field."""
+    scaled = df[df["deployment_status"] == "scaled/production"]
+    return scaled.groupby("industry").size().reset_index(name="scaled_case_studies")
