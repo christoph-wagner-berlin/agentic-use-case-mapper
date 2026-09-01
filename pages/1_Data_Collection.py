@@ -336,6 +336,37 @@ with tab_admin:
             count = storage.seed_market_context_from_csv(mc_seed_path)
             st.success(f"Reloaded {count} market context rows from the seed dataset.")
 
+    admin_col4, admin_col5, admin_col6, admin_col7 = st.columns(4)
+    seed_dir = Path(__file__).resolve().parent.parent / "data" / "seed"
+    with admin_col4:
+        if st.button("Reload topics & tagging", type="secondary"):
+            storage.seed_topics_from_csv(seed_dir / "topics_seed.csv")
+            count = storage.seed_use_case_topics_from_csv(seed_dir / "use_case_topics_seed.csv")
+            st.success(f"Reloaded topics and {count} use-case tags from the seed dataset.")
+    with admin_col5:
+        if st.button("Reload achievements seed data", type="secondary"):
+            count = storage.seed_achievements_from_csv(seed_dir / "achievements_seed.csv")
+            st.success(f"Reloaded {count} achievements from the seed dataset.")
+    with admin_col6:
+        if st.button("Reload use case ↔ case study links", type="secondary"):
+            count = storage.seed_links_from_csv(seed_dir / "use_case_case_study_links_seed.csv")
+            st.success(f"Reloaded {count} links from the seed dataset.")
+    with admin_col7:
+        if st.button("Rebuild sources from existing data", type="secondary"):
+            count = storage.backfill_sources_from_existing()
+            st.success(f"Derived {count} source rows from use_cases/company_case_studies/market_context.")
+
+    admin_col8, admin_col9 = st.columns(2)
+    with admin_col8:
+        if st.button("Reload agent catalog", type="secondary"):
+            count = storage.seed_agents_from_csv(seed_dir / "agents_seed.csv")
+            st.success(f"Reloaded {count} agents from the seed dataset.")
+    with admin_col9:
+        if st.button("Reload agent patterns & links", type="secondary"):
+            storage.seed_agent_patterns_from_csv(seed_dir / "agent_patterns_seed.csv")
+            count = storage.seed_agent_pattern_links_from_csv(seed_dir / "agent_pattern_links_seed.csv")
+            st.success(f"Reloaded agent patterns and {count} agent/pattern links from the seed dataset.")
+
     st.divider()
     st.caption("Export the current datasets.")
     exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -361,5 +392,49 @@ with tab_admin:
             "Export market context as CSV",
             mc_df.to_csv(index=False).encode("utf-8"),
             file_name="market_context_export.csv",
+            mime="text/csv",
+        )
+
+    exp_col4, exp_col5, exp_col6 = st.columns(3)
+    with exp_col4:
+        topics_joined_df = storage.load_use_case_topics_joined()
+        st.download_button(
+            "Export use-case topic tags as CSV",
+            topics_joined_df.to_csv(index=False).encode("utf-8"),
+            file_name="use_case_topics_export.csv",
+            mime="text/csv",
+        )
+    with exp_col5:
+        achievements_df = storage.load_achievements()
+        st.download_button(
+            "Export achievements as CSV",
+            achievements_df.to_csv(index=False).encode("utf-8"),
+            file_name="achievements_export.csv",
+            mime="text/csv",
+        )
+    with exp_col6:
+        sources_df = storage.load_sources()
+        st.download_button(
+            "Export sources as CSV",
+            sources_df.to_csv(index=False).encode("utf-8"),
+            file_name="sources_export.csv",
+            mime="text/csv",
+        )
+
+    exp_col7, exp_col8 = st.columns(2)
+    with exp_col7:
+        agents_df = storage.load_agents()
+        st.download_button(
+            "Export agent catalog as CSV",
+            agents_df.to_csv(index=False).encode("utf-8"),
+            file_name="agents_export.csv",
+            mime="text/csv",
+        )
+    with exp_col8:
+        agent_links_df = storage.load_agent_pattern_links_joined()
+        st.download_button(
+            "Export agent/pattern links as CSV",
+            agent_links_df.to_csv(index=False).encode("utf-8"),
+            file_name="agent_pattern_links_export.csv",
             mime="text/csv",
         )

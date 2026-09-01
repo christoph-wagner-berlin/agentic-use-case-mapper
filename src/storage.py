@@ -66,6 +66,47 @@ MARKET_CONTEXT_COLUMNS = [
     "notes",
 ]
 
+TOPIC_COLUMNS = ["id", "name", "description"]
+
+ACHIEVEMENT_COLUMNS = [
+    "id",
+    "title",
+    "achievement_type",
+    "tool_name",
+    "company_name",
+    "metric_display",
+    "description",
+    "date_achieved",
+    "source_url",
+    "source_type",
+    "confidence",
+    "notes",
+]
+
+LINK_COLUMNS = ["use_case_id", "case_study_id", "match_type", "notes"]
+
+SOURCE_COLUMNS = ["id", "table_name", "record_id", "url", "source_type", "retrieved_at", "notes"]
+
+AGENT_COLUMNS = [
+    "id",
+    "name",
+    "vendor",
+    "category",
+    "architecture_summary",
+    "autonomy_level",
+    "interface",
+    "open_source",
+    "release_year",
+    "description",
+    "source_url",
+    "source_type",
+    "notes",
+]
+
+AGENT_PATTERN_COLUMNS = ["id", "name", "description", "when_it_works_well", "source_url", "source_type"]
+
+AGENT_PATTERN_LINK_COLUMNS = ["agent_id", "pattern_id", "notes"]
+
 
 def get_connection() -> duckdb.DuckDBPyConnection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -132,6 +173,80 @@ def init_db() -> None:
             source_type TEXT,
             confidence TEXT,
             notes TEXT
+        );
+        CREATE SEQUENCE IF NOT EXISTS topics_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS topics (
+            id INTEGER PRIMARY KEY DEFAULT nextval('topics_id_seq'),
+            name TEXT,
+            description TEXT
+        );
+        CREATE TABLE IF NOT EXISTS use_case_topics (
+            use_case_id INTEGER,
+            topic_id INTEGER,
+            PRIMARY KEY (use_case_id, topic_id)
+        );
+        CREATE SEQUENCE IF NOT EXISTS achievements_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS achievements (
+            id INTEGER PRIMARY KEY DEFAULT nextval('achievements_id_seq'),
+            title TEXT,
+            achievement_type TEXT,
+            tool_name TEXT,
+            company_name TEXT,
+            metric_display TEXT,
+            description TEXT,
+            date_achieved DATE,
+            source_url TEXT,
+            source_type TEXT,
+            confidence TEXT,
+            notes TEXT
+        );
+        CREATE TABLE IF NOT EXISTS use_case_case_study_links (
+            use_case_id INTEGER,
+            case_study_id INTEGER,
+            match_type TEXT,
+            notes TEXT,
+            PRIMARY KEY (use_case_id, case_study_id)
+        );
+        CREATE SEQUENCE IF NOT EXISTS sources_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS sources (
+            id INTEGER PRIMARY KEY DEFAULT nextval('sources_id_seq'),
+            table_name TEXT,
+            record_id INTEGER,
+            url TEXT,
+            source_type TEXT,
+            retrieved_at DATE,
+            notes TEXT
+        );
+        CREATE SEQUENCE IF NOT EXISTS agents_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS agents (
+            id INTEGER PRIMARY KEY DEFAULT nextval('agents_id_seq'),
+            name TEXT,
+            vendor TEXT,
+            category TEXT,
+            architecture_summary TEXT,
+            autonomy_level TEXT,
+            interface TEXT,
+            open_source TEXT,
+            release_year INTEGER,
+            description TEXT,
+            source_url TEXT,
+            source_type TEXT,
+            notes TEXT
+        );
+        CREATE SEQUENCE IF NOT EXISTS agent_patterns_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS agent_patterns (
+            id INTEGER PRIMARY KEY DEFAULT nextval('agent_patterns_id_seq'),
+            name TEXT,
+            description TEXT,
+            when_it_works_well TEXT,
+            source_url TEXT,
+            source_type TEXT
+        );
+        CREATE TABLE IF NOT EXISTS agent_pattern_links (
+            agent_id INTEGER,
+            pattern_id INTEGER,
+            notes TEXT,
+            PRIMARY KEY (agent_id, pattern_id)
         )
     """)
     con.close()
@@ -329,5 +444,330 @@ def seed_market_context_from_csv(path: str | Path) -> int:
     cols = [c for c in MARKET_CONTEXT_COLUMNS if c in df.columns and c != "id"]
     con.execute(f"INSERT INTO market_context ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
     count = con.execute("SELECT COUNT(*) FROM market_context").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_topics() -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("SELECT * FROM topics ORDER BY name").fetchdf()
+    con.close()
+    return df
+
+
+def insert_topic(record: dict) -> int:
+    con = get_connection()
+    fields = [c for c in TOPIC_COLUMNS if c != "id" and c in record]
+    placeholders = ", ".join(["?"] * len(fields))
+    values = [record[f] for f in fields]
+    new_id = con.execute(
+        f"INSERT INTO topics ({', '.join(fields)}) VALUES ({placeholders}) RETURNING id",
+        values,
+    ).fetchone()[0]
+    con.close()
+    return new_id
+
+
+def seed_topics_from_csv(path: str | Path) -> int:
+    # Topic ids are reassigned on reseed, so any existing tagging would point at stale ids.
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS use_case_topics")
+    con.execute("DROP TABLE IF EXISTS topics")
+    con.execute("DROP SEQUENCE IF EXISTS topics_id_seq")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    cols = [c for c in TOPIC_COLUMNS if c in df.columns and c != "id"]
+    con.execute(f"INSERT INTO topics ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM topics").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_use_case_topics_joined() -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("""
+        SELECT uct.use_case_id, t.id AS topic_id, t.name AS topic_name, t.description AS topic_description
+        FROM use_case_topics uct
+        JOIN topics t ON t.id = uct.topic_id
+        ORDER BY uct.use_case_id, t.name
+    """).fetchdf()
+    con.close()
+    return df
+
+
+def seed_use_case_topics_from_csv(path: str | Path) -> int:
+    """Seed CSV has (use_case_id, topic_name) -- topic_name is resolved to topic_id here,
+    so `topics` must already be seeded before this runs."""
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS use_case_topics")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    con.execute("""
+        INSERT INTO use_case_topics (use_case_id, topic_id)
+        SELECT seed_df.use_case_id, t.id
+        FROM seed_df
+        JOIN topics t ON t.name = seed_df.topic_name
+    """)
+    count = con.execute("SELECT COUNT(*) FROM use_case_topics").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_achievements(filters: dict | None = None) -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("SELECT * FROM achievements ORDER BY id").fetchdf()
+    con.close()
+
+    if not filters:
+        return df
+
+    for field, value in filters.items():
+        if value in (None, "", [], ()):
+            continue
+        if isinstance(value, (list, tuple, set)):
+            df = df[df[field].isin(value)]
+        else:
+            df = df[df[field] == value]
+
+    return df
+
+
+def insert_achievement(record: dict) -> int:
+    con = get_connection()
+    record = {**record}
+    fields = [c for c in ACHIEVEMENT_COLUMNS if c != "id" and c in record]
+    placeholders = ", ".join(["?"] * len(fields))
+    values = [record[f] for f in fields]
+    new_id = con.execute(
+        f"INSERT INTO achievements ({', '.join(fields)}) VALUES ({placeholders}) RETURNING id",
+        values,
+    ).fetchone()[0]
+    con.close()
+    return new_id
+
+
+def update_achievement(id: int, record: dict) -> None:
+    con = get_connection()
+    record = {**record}
+    fields = [c for c in ACHIEVEMENT_COLUMNS if c != "id" and c in record]
+    set_clause = ", ".join(f"{f} = ?" for f in fields)
+    values = [record[f] for f in fields] + [id]
+    con.execute(f"UPDATE achievements SET {set_clause} WHERE id = ?", values)
+    con.close()
+
+
+def seed_achievements_from_csv(path: str | Path) -> int:
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS achievements")
+    con.execute("DROP SEQUENCE IF EXISTS achievements_id_seq")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    cols = [c for c in ACHIEVEMENT_COLUMNS if c in df.columns and c != "id"]
+    con.execute(f"INSERT INTO achievements ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM achievements").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_use_case_case_study_links_joined() -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("""
+        SELECT l.use_case_id, l.case_study_id, cs.company_name, cs.tool_or_platform, l.match_type, l.notes
+        FROM use_case_case_study_links l
+        JOIN company_case_studies cs ON cs.id = l.case_study_id
+        ORDER BY l.use_case_id
+    """).fetchdf()
+    con.close()
+    return df
+
+
+def seed_links_from_csv(path: str | Path) -> int:
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS use_case_case_study_links")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    cols = [c for c in LINK_COLUMNS if c in df.columns]
+    con.execute(f"INSERT INTO use_case_case_study_links ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM use_case_case_study_links").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_sources(filters: dict | None = None) -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("SELECT * FROM sources ORDER BY id").fetchdf()
+    con.close()
+
+    if not filters:
+        return df
+
+    for field, value in filters.items():
+        if value in (None, "", [], ()):
+            continue
+        if isinstance(value, (list, tuple, set)):
+            df = df[df[field].isin(value)]
+        else:
+            df = df[df[field] == value]
+
+    return df
+
+
+def backfill_sources_from_existing() -> int:
+    """Explode the semicolon-separated source_url/source_type already on use_cases,
+    company_case_studies, and market_context into individual `sources` rows. Derived from
+    those tables rather than hand-authored -- always rebuilds from scratch, safe to re-run."""
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS sources")
+    con.execute("DROP SEQUENCE IF EXISTS sources_id_seq")
+    con.close()
+    init_db()
+
+    con = get_connection()
+    specs = [
+        ("use_cases", "collected_at"),
+        ("company_case_studies", "date_reported"),
+        ("market_context", None),
+    ]
+    for table_name, date_column in specs:
+        date_expr = f"sub.{date_column}" if date_column else "NULL"
+        date_select = f", {date_column}" if date_column else ""
+        con.execute(f"""
+            INSERT INTO sources (table_name, record_id, url, source_type, retrieved_at)
+            SELECT '{table_name}', sub.id, sub.url, sub.source_type, {date_expr}
+            FROM (
+                SELECT id, source_type{date_select}, TRIM(unnest(string_split(source_url, ';'))) AS url
+                FROM {table_name}
+                WHERE source_url IS NOT NULL
+            ) sub
+            WHERE sub.url != ''
+        """)
+    count = con.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_agents(filters: dict | None = None) -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("SELECT * FROM agents ORDER BY id").fetchdf()
+    con.close()
+
+    if not filters:
+        return df
+
+    for field, value in filters.items():
+        if value in (None, "", [], ()):
+            continue
+        if isinstance(value, (list, tuple, set)):
+            df = df[df[field].isin(value)]
+        else:
+            df = df[df[field] == value]
+
+    return df
+
+
+def insert_agent(record: dict) -> int:
+    con = get_connection()
+    fields = [c for c in AGENT_COLUMNS if c != "id" and c in record]
+    placeholders = ", ".join(["?"] * len(fields))
+    values = [record[f] for f in fields]
+    new_id = con.execute(
+        f"INSERT INTO agents ({', '.join(fields)}) VALUES ({placeholders}) RETURNING id",
+        values,
+    ).fetchone()[0]
+    con.close()
+    return new_id
+
+
+def seed_agents_from_csv(path: str | Path) -> int:
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS agent_pattern_links")
+    con.execute("DROP TABLE IF EXISTS agents")
+    con.execute("DROP SEQUENCE IF EXISTS agents_id_seq")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    cols = [c for c in AGENT_COLUMNS if c in df.columns and c != "id"]
+    con.execute(f"INSERT INTO agents ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM agents").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_agent_patterns() -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("SELECT * FROM agent_patterns ORDER BY id").fetchdf()
+    con.close()
+    return df
+
+
+def seed_agent_patterns_from_csv(path: str | Path) -> int:
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS agent_pattern_links")
+    con.execute("DROP TABLE IF EXISTS agent_patterns")
+    con.execute("DROP SEQUENCE IF EXISTS agent_patterns_id_seq")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    cols = [c for c in AGENT_PATTERN_COLUMNS if c in df.columns and c != "id"]
+    con.execute(f"INSERT INTO agent_patterns ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM agent_patterns").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_agent_pattern_links_joined() -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("""
+        SELECT a.id AS agent_id, a.name AS agent_name, p.id AS pattern_id, p.name AS pattern_name, l.notes
+        FROM agent_pattern_links l
+        JOIN agents a ON a.id = l.agent_id
+        JOIN agent_patterns p ON p.id = l.pattern_id
+        ORDER BY a.name, p.name
+    """).fetchdf()
+    con.close()
+    return df
+
+
+def seed_agent_pattern_links_from_csv(path: str | Path) -> int:
+    """Seed CSV has (agent_name, pattern_name, notes) -- both names are resolved to ids here,
+    so `agents` and `agent_patterns` must already be seeded before this runs."""
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS agent_pattern_links")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    con.execute("""
+        INSERT INTO agent_pattern_links (agent_id, pattern_id, notes)
+        SELECT a.id, p.id, seed_df.notes
+        FROM seed_df
+        JOIN agents a ON a.name = seed_df.agent_name
+        JOIN agent_patterns p ON p.name = seed_df.pattern_name
+    """)
+    count = con.execute("SELECT COUNT(*) FROM agent_pattern_links").fetchone()[0]
     con.close()
     return count

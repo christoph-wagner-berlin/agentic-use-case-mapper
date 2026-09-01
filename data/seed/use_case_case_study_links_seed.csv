@@ -1,0 +1,20 @@
+use_case_id,case_study_id,match_type,notes
+42,1,direct evidence,Klarna is named directly in this use case's example_companies field.
+15,7,direct evidence,Nubank is named directly in this use case's example_companies field.
+36,8,direct evidence,LinkedIn is named directly in this use case's example_companies field.
+4,2,related pattern,"Same GitHub Copilot product family; the case study benchmarks core completion speed rather than Workspace's issue-to-PR flow specifically."
+60,3,related pattern,"Same HR-assistant automation pattern; different company and specific task (routine HR Q&A vs. seasonal hiring)."
+39,6,related pattern,"Same content-generation-at-scale pattern; different vendor/tool and original use case framed around marketing content rather than educational exercises."
+29,9,related pattern,Same research/summarization-for-finance-analysts pattern; different underlying model/tool.
+57,10,related pattern,"Same AI-assisted regulatory/operational documentation pattern, applied here in a different industry (pharma vs. automotive)."
+44,12,related pattern,"Same customer-facing support-agent-with-tool-use pattern; different vendor product (Salesforce Agentforce vs. OpenAI Assistants API)."
+44,13,related pattern,"Same customer-facing support pattern, applied to tax-filing and financial-product support rather than general customer service."
+49,14,related pattern,"Same AI-assisted embedded/industrial control code-generation pattern; different industry (manufacturing vs. automotive) and vendor."
+49,15,related pattern,Same automotive R&D coding-adjacent copilot rollout pattern.
+49,16,related pattern,"Same automotive R&D coding-adjacent copilot rollout pattern, different OEM."
+54,17,related pattern,Same logistics exception-handling / customer-facing shipment support pattern.
+39,18,related pattern,"Same AI-assisted content-drafting-at-scale pattern, applied here to retail catalog copy rather than marketing content."
+59,21,related pattern,"Same contract-review-and-compliance-cross-checking pattern, applied here to legal/tax advisory rather than manufacturing supplier contracts."
+44,22,related pattern,Same customer-facing support-agent pattern; IKEA additionally redeployed staff rather than reducing headcount.
+54,24,related pattern,Same logistics customer-service/operations pilot pattern.
+53,25,related pattern,"Same manufacturing-floor engineering-copilot theme; this case study is about documentation/troubleshooting search rather than quality-inspection orchestration specifically."

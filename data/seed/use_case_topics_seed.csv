@@ -1,0 +1,79 @@
+use_case_id,topic_name
+1,Code review & quality
+2,Codebase migration & modernization
+3,Code review & quality
+4,Autonomous end-to-end engineering
+5,Autonomous end-to-end engineering
+6,Developer pair programming
+7,Developer pair programming
+8,Developer pair programming
+9,Autonomous end-to-end engineering
+10,Developer pair programming
+10,Compliance & regulatory documentation
+11,Developer pair programming
+12,Developer pair programming
+13,Autonomous end-to-end engineering
+14,Code review & quality
+15,Autonomous end-to-end engineering
+16,Codebase migration & modernization
+17,Desktop & legacy UI automation
+17,Code review & quality
+18,Desktop & legacy UI automation
+19,Autonomous web task completion
+20,Web & competitive research
+21,Autonomous web task completion
+22,Web & competitive research
+23,Autonomous web task completion
+24,"Sales, marketing & content generation"
+25,Web & competitive research
+26,Web & competitive research
+27,Enterprise RAG & knowledge management
+28,Web & competitive research
+29,Web & competitive research
+30,Web & competitive research
+31,Web & competitive research
+32,Web & competitive research
+32,Enterprise RAG & knowledge management
+33,Autonomous end-to-end engineering
+33,Multi-agent orchestration & observability
+34,Autonomous web task completion
+35,Enterprise RAG & knowledge management
+36,Multi-agent orchestration & observability
+37,Multi-agent orchestration & observability
+38,Customer support automation
+38,Multi-agent orchestration & observability
+39,"Sales, marketing & content generation"
+40,Multi-agent orchestration & observability
+41,Code review & quality
+41,Multi-agent orchestration & observability
+42,Customer support automation
+42,Enterprise RAG & knowledge management
+43,Multi-agent orchestration & observability
+44,Customer support automation
+45,Autonomous end-to-end engineering
+46,Autonomous end-to-end engineering
+47,Industrial operations & predictive maintenance
+48,Enterprise RAG & knowledge management
+48,Customer support automation
+49,Code review & quality
+49,Compliance & regulatory documentation
+50,Web & competitive research
+51,Multi-agent orchestration & observability
+52,Desktop & legacy UI automation
+52,Industrial operations & predictive maintenance
+53,Industrial operations & predictive maintenance
+53,Multi-agent orchestration & observability
+54,Industrial operations & predictive maintenance
+54,Procurement & vendor operations
+55,Procurement & vendor operations
+56,Web & competitive research
+57,Compliance & regulatory documentation
+58,Compliance & regulatory documentation
+59,Compliance & regulatory documentation
+60,HR & workforce operations
+61,HR & workforce operations
+62,Procurement & vendor operations
+63,Procurement & vendor operations
+63,Multi-agent orchestration & observability
+64,HR & workforce operations
+64,"Sales, marketing & content generation"

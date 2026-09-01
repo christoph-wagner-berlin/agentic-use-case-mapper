@@ -1,0 +1,45 @@
+agent_name,pattern_name,notes
+Claude Code,Autonomous agent loop,Plans and executes multi-step coding tasks without a fixed predefined script.
+Claude Code,ReAct (Reason + Act),Interleaves reasoning with tool calls (read/edit/bash) and observes each result before the next step.
+Claude Code,Human-in-the-loop approval gates,Commits and PRs are reviewed by a human before merging.
+GitHub Copilot Workspace,Autonomous agent loop,Independently plans an implementation from an issue before human review.
+GitHub Copilot Workspace,Human-in-the-loop approval gates,The developer reviews the draft plan and PR before merge.
+Cursor,ReAct (Reason + Act),Codebase-aware chat reasons about the change before proposing an edit.
+Cursor,Human-in-the-loop approval gates,The developer accepts or rejects each suggested inline edit.
+Cline,ReAct (Reason + Act),Reasons about the next file edit or command before proposing it.
+Cline,Human-in-the-loop approval gates,Explicit per-step approval before each file edit or terminal command.
+Aider,ReAct (Reason + Act),Reasons about the diff before editing files.
+Aider,Autonomous agent loop,Runs an edit-and-commit loop across multiple turns without a fixed script.
+OpenAI Codex CLI,Autonomous agent loop,Completes a coding task end-to-end in a sandboxed terminal loop.
+OpenAI Codex CLI,ReAct (Reason + Act),Reasons about the task before each file/command action.
+Devin,Autonomous agent loop,"Plans, executes, and iterates on a ticket with minimal supervision."
+Devin,Reflection & self-critique,"Runs and checks its own code against tests, revising before reporting completion."
+Devin,Orchestrator-workers,Marketed as decomposing a ticket into a multi-step plan it then executes.
+Claude with computer use,ReAct (Reason + Act),Reasons about the screenshot before choosing the next mouse/keyboard action.
+Claude with computer use,Autonomous agent loop,Operates a virtual desktop through a repeated observe-act loop.
+OpenAI Operator/ChatGPT agent mode,Autonomous agent loop,Completes multi-step web tasks within pre-approved constraints without a fixed script.
+OpenAI Operator/ChatGPT agent mode,ReAct (Reason + Act),Reasons about page state before each browser action.
+Google Project Mariner,ReAct (Reason + Act),Reasons about tab/page state before each action.
+Google Project Mariner,Autonomous agent loop,Operates across multiple tabs toward a research or shopping goal.
+Manus,Autonomous agent loop,Executes a self-generated sequence of actions toward a high-level goal.
+Manus,Orchestrator-workers,Plans and delegates sub-tasks across web/file/tool actions toward the goal.
+Perplexity,Routing,Routes a question to a live web search rather than answering from the base model alone.
+Perplexity,Prompt chaining,Chains retrieval and synthesis into a single-pass cited answer.
+ChatGPT Deep Research,Autonomous agent loop,Runs many searches over several minutes without a fixed predefined path.
+ChatGPT Deep Research,Orchestrator-workers,Breaks a research question into sub-searches and synthesizes the findings.
+Claude Research mode,Orchestrator-workers,Plans a research approach and delegates it into multiple searches.
+Claude Research mode,Parallelization,Explicitly dispatches parallel searches before synthesizing a single answer.
+AutoGPT/BabyAGI (legacy),Autonomous agent loop,The original recursive goal-decomposition-and-execution loop.
+AutoGPT/BabyAGI (legacy),Orchestrator-workers,"Generates, prioritizes, and executes its own sub-task list."
+LangChain/LangGraph,Orchestrator-workers,Commonly used to build a central node that delegates to worker chains.
+LangChain/LangGraph,Routing,Conditional edges in a graph route input to different downstream chains.
+LangChain/LangGraph,Evaluator-optimizer,LangGraph's cyclic graphs support an explicit evaluate-and-retry loop.
+CrewAI,Multi-agent collaboration,Its defining mechanic -- role-based agents in a crew that hand off work.
+CrewAI,Orchestrator-workers,Often organized with a manager agent delegating to specialist crew members.
+AutoGen,Multi-agent collaboration,Orchestrates conversations between multiple specialized agents.
+AutoGen,Evaluator-optimizer,Commonly pairs a generator agent with a critic/executor agent in a feedback loop.
+OpenAI Assistants API/Agents SDK,ReAct (Reason + Act),The underlying tool-calling loop developers wire into their own product.
+OpenAI Assistants API/Agents SDK,Routing,Commonly used to route a request to the right function/tool.
+Claude Agent SDK,Autonomous agent loop,Exposes the same autonomous loop that powers Claude Code for custom agents.
+Claude Agent SDK,ReAct (Reason + Act),Same reason-then-act tool-use harness as Claude Code.
+Claude Agent SDK,Human-in-the-loop approval gates,Supports the same approval-gate pattern for file/shell actions as Claude Code.

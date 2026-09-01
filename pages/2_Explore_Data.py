@@ -17,6 +17,10 @@ if df.empty:
     st.warning("No data yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
     st.stop()
 
+topics_joined = storage.load_use_case_topics_joined()
+links_joined = storage.load_use_case_case_study_links_joined()
+topics_by_use_case = topics_joined.groupby("use_case_id")["topic_name"].apply(list) if not topics_joined.empty else pd.Series(dtype=object)
+
 all_industries = sorted(
     set(
         df["target_industries"].dropna().str.split(";").explode().str.strip()
@@ -37,6 +41,7 @@ with st.sidebar:
     maturities = st.multiselect("Maturity", sorted(df["maturity"].unique()))
     industries = st.multiselect("Industry", all_industries)
     departments = st.multiselect("Department / business function", all_departments)
+    topics_filter = st.multiselect("Topic", sorted(topics_joined["topic_name"].unique()) if not topics_joined.empty else [])
     min_score = st.slider("Minimum business value score", 1, 5, 1)
     search_text = st.text_input("Search (title / ROI drivers)")
 
@@ -59,6 +64,9 @@ if departments:
             lambda v: any(d in [p.strip() for p in str(v).split(";")] for d in departments)
         )
     ]
+if topics_filter:
+    matching_ids = set(topics_joined[topics_joined["topic_name"].isin(topics_filter)]["use_case_id"])
+    filtered = filtered[filtered["id"].isin(matching_ids)]
 filtered = filtered[filtered["business_value_score"] >= min_score]
 if search_text:
     needle = search_text.lower()
@@ -69,8 +77,11 @@ if search_text:
 
 st.caption(f"{len(filtered)} of {len(df)} use cases match the current filters.")
 
+display_df = filtered.copy()
+display_df["topics"] = display_df["id"].map(lambda i: "; ".join(topics_by_use_case.get(i, [])))
+
 st.dataframe(
-    filtered[
+    display_df[
         [
             "category",
             "tool_name",
@@ -78,6 +89,7 @@ st.dataframe(
             "use_case_description",
             "maturity",
             "business_value_score",
+            "topics",
             "roi_drivers",
             "target_industries",
             "target_departments",
@@ -88,6 +100,7 @@ st.dataframe(
     hide_index=True,
     column_config={
         "use_case_description": st.column_config.TextColumn("Description", width="large"),
+        "topics": st.column_config.TextColumn("Topics"),
         "target_industries": st.column_config.TextColumn("Industries"),
         "target_departments": st.column_config.TextColumn("Departments"),
         "example_companies": st.column_config.TextColumn("Example companies"),
@@ -116,10 +129,19 @@ if not filtered.empty:
     st.markdown(f"**Target users:** {row['target_users']}")
     st.markdown(f"**Target industries:** {row['target_industries']}")
     st.markdown(f"**Target departments:** {row['target_departments']}")
+    row_topics = topics_by_use_case.get(selected_id, [])
+    if row_topics:
+        st.markdown(f"**Topics:** {'; '.join(row_topics)}")
     st.write(row["use_case_description"])
     st.markdown(f"**ROI drivers:** {row['roi_drivers']}")
     st.markdown(f"**Example companies:** {row['example_companies']}")
     st.markdown(f"**Rationale:** {row['business_value_rationale']}")
+
+    related_links = links_joined[links_joined["use_case_id"] == selected_id] if not links_joined.empty else links_joined
+    if not related_links.empty:
+        st.markdown("**Related case studies:**")
+        for _, link_row in related_links.iterrows():
+            st.markdown(f"- {link_row['company_name']} ({link_row['tool_or_platform']}) — *{link_row['match_type']}*")
 
     urls = [u.strip() for u in str(row["source_url"]).split(";") if u.strip()]
     sources_md = " · ".join(f"[{u}]({u})" for u in urls)
