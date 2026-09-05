@@ -59,8 +59,8 @@ st.divider()
 st.header("Over time")
 st.caption(
     "History only — deliberately **no forward projection** here, unlike the Trends & Industries "
-    "forecast. With only one quantified case study in the whole dataset, extrapolating a dollar "
-    "trend would manufacture false precision rather than show a real pattern."
+    "forecast. With a handful of quantified case studies in the whole dataset, extrapolating a "
+    "dollar trend would manufacture false precision rather than show a real pattern."
 )
 tcol1, tcol2 = st.columns(2)
 with tcol1:
