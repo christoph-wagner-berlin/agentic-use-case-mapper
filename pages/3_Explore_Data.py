@@ -14,7 +14,7 @@ st.title("Explore Use Cases")
 df = storage.load_use_cases()
 
 if df.empty:
-    st.warning("No data yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+    st.warning("No data yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
 topics_joined = storage.load_use_case_topics_joined()

@@ -3,8 +3,8 @@ import streamlit as st
 
 from src import storage
 
-st.set_page_config(page_title="Agentic Use Case Map", layout="wide")
-st.title("Agentic Use Case Map")
+st.set_page_config(page_title="App Overview", layout="wide")
+st.title("App Overview")
 st.write("Where agentic AI is already creating real business value — before you dive into the mapping tools in the sidebar.")
 
 df = storage.load_use_cases()
@@ -43,7 +43,7 @@ else:
     st.header("💰 Real-world achievements")
     st.caption("Company case studies ranked by the biggest disclosed dollar impact.")
     if case_studies.empty:
-        st.info("No case studies yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+        st.info("No case studies yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     else:
         quantified = case_studies[case_studies["financial_impact_usd"].notna()]
         top_achievements = (quantified if not quantified.empty else case_studies).sort_values(
@@ -71,7 +71,7 @@ else:
     st.header("🏅 Notable achievements")
     st.caption("Vendor- and tool-side milestones — funding, benchmarks, and adoption — distinct from the customer $ case studies above.")
     if achievements.empty:
-        st.info("No achievements yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+        st.info("No achievements yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     else:
         conf_badge = {"high": "🟢", "moderate": "🟡", "directional": "🟠"}
         top_achievements_list = achievements.sort_values("date_achieved", ascending=False).head(6)
@@ -106,12 +106,12 @@ else:
     st.divider()
     st.header("Dig deeper")
     lcol1, lcol2, lcol3, lcol4, lcol5, lcol6 = st.columns(6)
-    lcol1.page_link("pages/2_Explore_Data.py", label="Explore all use cases", icon="🔎")
-    lcol2.page_link("pages/4_Trends_and_Industries.py", label="Trends & Industries map", icon="🗺️")
-    lcol3.page_link("pages/5_Real_World_Impact.py", label="Real-World Impact", icon="🏢")
-    lcol4.page_link("pages/6_Revenue_and_ROI+.py", label="Revenue & ROI+", icon="💵")
-    lcol5.page_link("pages/7_Growth_and_Opportunities.py", label="Growth & Opportunities", icon="📈")
-    lcol6.page_link("pages/8_Agent_Catalog_and_Patterns.py", label="Agent Catalog & Patterns", icon="🤖")
+    lcol1.page_link("pages/3_Explore_Data.py", label="Explore all use cases", icon="🔎")
+    lcol2.page_link("pages/2_Trends_and_Industries.py", label="Trends & Industries map", icon="🗺️")
+    lcol3.page_link("pages/4_Real_World_Impact.py", label="Real-World Impact", icon="🏢")
+    lcol4.page_link("pages/5_Revenue_and_ROI+.py", label="Revenue & ROI+", icon="💵")
+    lcol5.page_link("pages/6_Growth_and_Opportunities.py", label="Growth & Opportunities", icon="📈")
+    lcol6.page_link("pages/7_Agent_Catalog_and_Patterns.py", label="Agent Catalog & Patterns", icon="🤖")
 
     st.divider()
     st.subheader("Use cases per category")

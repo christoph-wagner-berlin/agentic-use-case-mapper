@@ -5,7 +5,7 @@ A research project for collecting, exploring, and analyzing real-world agentic A
 ## Structure
 
 - `app.py` — Streamlit entry point.
-- `pages/` — additional Streamlit pages (data collection, exploration, analysis).
+- `pages/` — additional Streamlit pages (exploration, analysis).
 - `src/collectors/` — fetch data from sources (APIs, web pages, search).
 - `src/processors/` — clean & normalize collected data.
 - `src/analysis/` — analysis functions, importable from pages and testable standalone.
@@ -42,10 +42,9 @@ Then launch the app:
 streamlit run app.py
 ```
 
-- **Data Collection** page — add or edit use cases and company case studies, or reload the seed datasets.
-- **Explore Data** page — filter/search the catalog (including by industry and department) and inspect full use case details.
 - **Analysis** page — category/maturity/ROI-driver/department breakdowns and charts, plus an over-time section (category/department growth).
 - **Trends & Industries** page — adoption over time (including industry growth over time), industry breakdowns, an industry × department mapping (heatmap + browsable pairs), and a **Forecast & Momentum** section: naive linear-trend extrapolation by category/industry/department with "fastest-growing" vs. "largest/most established" leaderboards — explicitly labeled illustrative, not a statistical forecast, given the dataset's size.
+- **Explore Data** page — filter/search the catalog (including by industry and department) and inspect full use case details.
 - **Real-World Impact** page — what companies are actually doing: browsable, filterable company case studies with an industry × department evidence heatmap and an over-time view (case studies by year, deployment-status mix by year). Carries a persistent disclaimer — this data is knowledge-based and not independently re-verified.
 - **Revenue & ROI+** page — how much of that real-world evidence is actually quantified in dollar terms (most isn't, including its trend by year), disclosed $ impact by industry/department, a pilot → scaled → reversed → discontinued deployment-status breakdown, and macro market-size/investment-vs-realized-ROI context. No forward projection here (too few quantified data points to extrapolate honestly) — that's what the Trends & Industries forecast is for.
 - **Growth & Opportunities** page — a value × growth × maturity bubble chart across every category/industry/department (nothing truncated to a top-N), an opportunity finder surfacing department patterns proven valuable elsewhere but barely applied in a given industry yet, and a maturity-readiness ranking cross-checked against real scaled deployments from the Real-World Impact data.

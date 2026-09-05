@@ -24,7 +24,7 @@ cs = storage.load_case_studies()
 mc = storage.load_market_context()
 
 if cs.empty:
-    st.warning("No case studies yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+    st.warning("No case studies yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
 st.markdown(

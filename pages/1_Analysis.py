@@ -15,7 +15,7 @@ st.title("Analysis")
 df = storage.load_use_cases()
 
 if df.empty:
-    st.warning("No data yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+    st.warning("No data yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
 kcol1, kcol2, kcol3, kcol4 = st.columns(4)

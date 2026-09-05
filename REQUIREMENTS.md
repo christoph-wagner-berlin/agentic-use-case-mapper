@@ -87,12 +87,11 @@ Scoring should be based on **evidence found during research** (case studies, rep
 ### 4.3 Streamlit frontend
 - FR6: **Explore page** — filterable/sortable table of all use cases (filter by category, tool, maturity, value score, ROI driver tags, industry, department).
 - FR7: **Analysis page** — visual breakdown: average value score by category/department, count of use cases by maturity, distribution of ROI drivers, category comparison chart, and an over-time section (use cases by year, cumulative growth, category/department growth over time).
-- FR8: **Data Collection page** — form or workflow to add/edit a use case entry or a company case study, plus a way to trigger any scripted collectors.
-- FR9: Detail view for a single use case showing all fields including sources and rationale.
-- FR10: **Trends & Industries page** — adoption-over-time charts (including industry growth over time), per-industry breakdowns, an industry × department mapping (heatmap + browsable pairs), and a **Forecast & Momentum** section: a naive linear-trend extrapolation (explicitly labeled illustrative, not a statistical forecast) by category/industry/department, with "fastest-growing" and "largest/most established" leaderboards.
-- FR11: **Real-World Impact page** — browsable/filterable `company_case_studies`, with an industry × department evidence heatmap, an over-time section (case studies by year reported, cumulative, deployment-status mix by year), behind a persistent "not independently re-verified" disclaimer.
-- FR12: **Revenue & ROI+ page** — disclosed $ impact by industry/department, a quantification-rate KPI (how many case studies actually have a hard $ figure vs. don't) including its trend by year, cumulative disclosed $ over time, a deployment-status funnel (pilot/scaled/reversed/discontinued), and macro investment-vs-realized-ROI context from `market_context`.
-- FR13: **Growth & Opportunities page** — a value × growth × maturity bubble chart per category/industry/department (untruncated — every group, not a top-N leaderboard), an opportunity/white-space finder (department patterns proven valuable elsewhere but barely applied in a given industry), and a maturity-readiness ranking cross-checked against real scaled deployments from `company_case_studies`.
+- FR8: Detail view for a single use case showing all fields including sources and rationale.
+- FR9: **Trends & Industries page** — adoption-over-time charts (including industry growth over time), per-industry breakdowns, an industry × department mapping (heatmap + browsable pairs), and a **Forecast & Momentum** section: a naive linear-trend extrapolation (explicitly labeled illustrative, not a statistical forecast) by category/industry/department, with "fastest-growing" and "largest/most established" leaderboards.
+- FR10: **Real-World Impact page** — browsable/filterable `company_case_studies`, with an industry × department evidence heatmap, an over-time section (case studies by year reported, cumulative, deployment-status mix by year), behind a persistent "not independently re-verified" disclaimer.
+- FR11: **Revenue & ROI+ page** — disclosed $ impact by industry/department, a quantification-rate KPI (how many case studies actually have a hard $ figure vs. don't) including its trend by year, cumulative disclosed $ over time, a deployment-status funnel (pilot/scaled/reversed/discontinued), and macro investment-vs-realized-ROI context from `market_context`.
+- FR12: **Growth & Opportunities page** — a value × growth × maturity bubble chart per category/industry/department (untruncated — every group, not a top-N leaderboard), an opportunity/white-space finder (department patterns proven valuable elsewhere but barely applied in a given industry), and a maturity-readiness ranking cross-checked against real scaled deployments from `company_case_studies`.
 
 ## 5. Non-Functional Requirements
 
@@ -125,11 +124,11 @@ The `use_cases` table catalogs *types* of agentic-AI applications, not who actua
 | `financial_impact_type` | enum | `profit impact`, `cost savings`, `revenue impact`, `cost avoidance`, `headcount efficiency`, `not quantified` |
 | `deployment_status` | enum | `pilot`, `scaled/production`, `scaled then partially reversed`, `discontinued` — not every pilot survives; this tracks that funnel |
 
-This dataset is knowledge-based and **not independently re-verified** — the Real-World Impact page (`pages/5_Real_World_Impact.py`) carries a persistent disclaimer to that effect, and `confidence` is meant to be read before treating any figure as fact.
+This dataset is knowledge-based and **not independently re-verified** — the Real-World Impact page (`pages/4_Real_World_Impact.py`) carries a persistent disclaimer to that effect, and `confidence` is meant to be read before treating any figure as fact.
 
 ## 5b. Financial Impact & Market Context
 
-Two more layers sit on top of 5a, both surfaced on `pages/6_Revenue_and_ROI+.py` ("Revenue & ROI+"):
+Two more layers sit on top of 5a, both surfaced on `pages/5_Revenue_and_ROI+.py` ("Revenue & ROI+"):
 
 1. The `financial_impact_usd` / `financial_impact_type` / `deployment_status` fields on `company_case_studies` (above), which let the app compute how much of the disclosed evidence is actually quantified in dollar terms, broken down by industry and department.
 2. A separate `market_context` table of macro-level reference facts (investment/market-size figures, independent survey findings on realized ROI, analyst forecasts on project failure rates) — these describe the *market*, not any one company's deployment, so they don't belong on `company_case_studies`.
@@ -160,7 +159,7 @@ Seeded from `data/seed/market_context_seed.csv` via `storage.seed_market_context
 ## 7. Deliverables / Success Criteria
 
 - A populated dataset covering at least the tools listed in Section 2.1, with 2+ use cases per tool where findable.
-- A working Streamlit app with Explore, Analysis, and Data Collection pages reading from the same data store.
+- A working Streamlit app with Explore and Analysis pages reading from the same data store.
 - Every use case entry has a sourced, justified business value score.
 - README documenting how to run collection scripts and launch the app.
 

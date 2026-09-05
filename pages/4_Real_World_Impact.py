@@ -23,7 +23,7 @@ st.caption("Looking for the money angle specifically? See the **Revenue & ROI+**
 df = storage.load_case_studies()
 
 if df.empty:
-    st.warning("No case studies yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+    st.warning("No case studies yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
 all_industries = sorted(df["industry"].dropna().unique())

@@ -20,7 +20,7 @@ st.caption(
 df = storage.load_use_cases()
 
 if df.empty:
-    st.warning("No data yet. Run `python -m scripts.seed_db` or add entries via the Data Collection page.")
+    st.warning("No data yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
 df["first_available"] = pd.to_datetime(df["first_available"])
