@@ -7,7 +7,7 @@ st.set_page_config(page_title="App Overview", layout="wide")
 st.title("App Overview")
 st.write("Where agentic AI is already creating real business value — before you dive into the mapping tools in the sidebar.")
 
-df = storage.load_use_cases()
+df = storage.load_ai_tooling_use_cases()
 case_studies = storage.load_case_studies()
 achievements = storage.load_achievements()
 topics = storage.load_topics()
@@ -19,14 +19,14 @@ else:
     scaled = int((case_studies["deployment_status"] == "scaled/production").sum()) if not case_studies.empty else 0
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Use cases tracked", len(df))
+    col1.metric("AI tooling use cases tracked", len(df))
     col2.metric("Avg. business value score", round(df["business_value_score"].mean(), 2))
     col3.metric("Total disclosed $ impact", f"${total_impact:,.0f}" if total_impact else "$0")
     col4.metric("Companies at scaled/production", scaled)
 
     st.divider()
-    st.header("🏆 Top business-value use cases")
-    st.caption("Highest-scored use cases in the dataset, with the advantages and ROI behind each score.")
+    st.header("🏆 Top business-value AI tooling use cases")
+    st.caption("Highest-scored AI tooling use cases in the dataset, with the advantages and ROI behind each score.")
     top_use_cases = df.sort_values(
         ["business_value_score", "first_available"], ascending=[False, False]
     ).head(6)
@@ -106,7 +106,7 @@ else:
     st.divider()
     st.header("Dig deeper")
     lcol1, lcol2, lcol3, lcol4, lcol5, lcol6 = st.columns(6)
-    lcol1.page_link("pages/3_Explore_Data.py", label="Explore all use cases", icon="🔎")
+    lcol1.page_link("pages/3_Explore_Data.py", label="Explore all AI tooling use cases", icon="🔎")
     lcol2.page_link("pages/2_Trends_and_Industries.py", label="Trends & Industries map", icon="🗺️")
     lcol3.page_link("pages/4_Real_World_Impact.py", label="Real-World Impact", icon="🏢")
     lcol4.page_link("pages/5_Revenue_and_ROI+.py", label="Revenue & ROI+", icon="💵")
@@ -114,5 +114,5 @@ else:
     lcol6.page_link("pages/7_Agent_Catalog_and_Patterns.py", label="Agent Catalog & Patterns", icon="🤖")
 
     st.divider()
-    st.subheader("Use cases per category")
+    st.subheader("AI tooling use cases per category")
     st.bar_chart(df.groupby("category").size())

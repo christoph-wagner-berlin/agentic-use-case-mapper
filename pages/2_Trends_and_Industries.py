@@ -17,7 +17,7 @@ st.caption(
     "and `target_industries` is an editorial categorization — both treat as approximate."
 )
 
-df = storage.load_use_cases()
+df = storage.load_ai_tooling_use_cases()
 
 if df.empty:
     st.warning("No data yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
@@ -27,8 +27,8 @@ df["first_available"] = pd.to_datetime(df["first_available"])
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Industries covered", summaries.industry_counts(df)["industry"].nunique())
-col2.metric("Earliest use case", int(df["first_available"].dt.year.min()))
-col3.metric("Newest use case", int(df["first_available"].dt.year.max()))
+col2.metric("Earliest AI tooling use case", int(df["first_available"].dt.year.min()))
+col3.metric("Newest AI tooling use case", int(df["first_available"].dt.year.max()))
 avg_age_years = ((pd.Timestamp.today() - df["first_available"]).dt.days / 365.25).mean()
 col4.metric("Avg. age (years)", round(avg_age_years, 1))
 
@@ -37,10 +37,10 @@ st.header("Over time")
 
 tcol1, tcol2 = st.columns(2)
 with tcol1:
-    st.subheader("Use cases by emergence year")
+    st.subheader("AI tooling use cases by emergence year")
     yearly = summaries.counts_by_year(df)
     fig = px.bar(yearly, x="year", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     fig.update_xaxes(type="category")
     st.plotly_chart(fig, width="stretch")
 
@@ -48,11 +48,11 @@ with tcol2:
     st.subheader("Cumulative growth")
     cumulative = summaries.cumulative_by_year(df)
     fig = px.line(cumulative, x="year", y="cumulative_count", markers=True)
-    fig.update_layout(xaxis_title="", yaxis_title="Total tracked use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="Total tracked AI tooling use cases")
     fig.update_xaxes(type="category")
     st.plotly_chart(fig, width="stretch")
 
-st.subheader("Use cases by emergence date and value")
+st.subheader("AI tooling use cases by emergence date and value")
 fig = px.scatter(
     df,
     x="first_available",
@@ -69,10 +69,10 @@ st.header("Industries")
 
 icol1, icol2 = st.columns(2)
 with icol1:
-    st.subheader("Use cases per industry")
+    st.subheader("AI tooling use cases per industry")
     ind_counts = summaries.industry_counts(df)
     fig = px.bar(ind_counts, x="industry", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width="stretch")
 
 with icol2:
@@ -85,7 +85,7 @@ with icol2:
 st.subheader("Industry growth over time")
 ind_by_year = summaries.grouped_counts_by_year(df, "target_industries", explode=True)
 fig = px.area(ind_by_year, x="year", y="count", color="target_industries")
-fig.update_layout(xaxis_title="", yaxis_title="Use cases", legend_title="Industry")
+fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases", legend_title="Industry")
 fig.update_xaxes(type="category")
 st.plotly_chart(fig, width="stretch")
 
@@ -97,19 +97,19 @@ exploded["industry"] = exploded["industry"].str.strip()
 exploded = exploded[exploded["industry"] != ""]
 pivot = exploded.groupby(["industry", "category"]).size().reset_index(name="count")
 fig = px.bar(pivot, x="industry", y="count", color="category", barmode="stack")
-fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
 st.plotly_chart(fig, width="stretch")
 
 st.divider()
 st.header("Departments")
-st.caption("`target_departments` is an editorial categorization of which business function(s) a use case serves.")
+st.caption("`target_departments` is an editorial categorization of which business function(s) an AI tooling use case serves.")
 
 dcol1, dcol2 = st.columns(2)
 with dcol1:
-    st.subheader("Use cases per department")
+    st.subheader("AI tooling use cases per department")
     dept_counts = summaries.department_counts(df)
     fig = px.bar(dept_counts, x="department", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width="stretch")
 
 with dcol2:
@@ -123,14 +123,14 @@ st.divider()
 st.header("Industry × Department mapping")
 st.caption(
     "Where agentic-AI use cases concentrate across industry and business function. "
-    "A cell is the count of tracked use cases relevant to that industry/department pair."
+    "A cell is the count of tracked AI tooling use cases relevant to that industry/department pair."
 )
 
 matrix = summaries.industry_department_matrix(df)
 heatmap_data = matrix.pivot(index="department", columns="industry", values="count").fillna(0)
 fig = px.imshow(
     heatmap_data,
-    labels=dict(x="Industry", y="Department", color="Use cases"),
+    labels=dict(x="Industry", y="Department", color="AI tooling use cases"),
     color_continuous_scale="Blues",
     text_auto=True,
     aspect="auto",
@@ -150,7 +150,7 @@ matched = df[
     & df["target_departments"].apply(lambda v: pick_department in [p.strip() for p in str(v).split(";")])
 ]
 if matched.empty:
-    st.info(f"No tracked use cases yet for {pick_industry} × {pick_department}.")
+    st.info(f"No tracked AI tooling use cases yet for {pick_industry} × {pick_department}.")
 else:
     for _, row in matched.sort_values("business_value_score", ascending=False).iterrows():
         st.markdown(
@@ -185,7 +185,7 @@ fig = px.line(
     labels={group_col: dimension},
 )
 fig.update_xaxes(type="category")
-fig.update_layout(xaxis_title="", yaxis_title="Use cases (solid = actual, dashed = projected)")
+fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases (solid = actual, dashed = projected)")
 st.plotly_chart(fig, width="stretch")
 
 rankable = summary_df[~summary_df["insufficient_history"]]
@@ -194,7 +194,7 @@ excluded = len(summary_df) - len(rankable)
 lcol1, lcol2 = st.columns(2)
 with lcol1:
     st.subheader("Fastest-growing")
-    st.caption("Ranked by recent_share — the fraction of a group's tracked use cases that first appeared in its latest observed year. Which use cases will come more.")
+    st.caption("Ranked by recent_share — the fraction of a group's tracked AI tooling use cases that first appeared in its latest observed year. Which AI tooling use cases will come more.")
     fastest = rankable.sort_values("recent_share", ascending=False).head(8)
     st.dataframe(
         fastest[[group_col, "recent_share", "total_count"]],
@@ -202,18 +202,18 @@ with lcol1:
         column_config={
             group_col: dimension,
             "recent_share": st.column_config.ProgressColumn("Recent share", min_value=0, max_value=1, format="%.0f%%"),
-            "total_count": "Total use cases",
+            "total_count": "Total AI tooling use cases",
         },
     )
 with lcol2:
     st.subheader("Largest / most established")
-    st.caption("Ranked by total tracked use cases, with average business value score alongside. Which areas are most important today.")
+    st.caption("Ranked by total tracked AI tooling use cases, with average business value score alongside. Which areas are most important today.")
     largest = rankable.sort_values("total_count", ascending=False).head(8)
     cols_to_show = [group_col, "total_count"] + (["avg_business_value_score"] if "avg_business_value_score" in largest.columns else [])
     st.dataframe(
         largest[cols_to_show],
         hide_index=True, width="stretch",
-        column_config={group_col: dimension, "total_count": "Total use cases", "avg_business_value_score": "Avg. score (1-5)"},
+        column_config={group_col: dimension, "total_count": "Total AI tooling use cases", "avg_business_value_score": "Avg. score (1-5)"},
     )
 
 if excluded:

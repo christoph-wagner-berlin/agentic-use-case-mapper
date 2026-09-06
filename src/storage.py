@@ -1,4 +1,4 @@
-"""DuckDB-backed storage for the use_cases dataset (REQUIREMENTS.md section 3)."""
+"""DuckDB-backed storage for the ai_tooling_use_cases dataset (REQUIREMENTS.md section 3)."""
 
 from pathlib import Path
 from datetime import date
@@ -8,7 +8,7 @@ import pandas as pd
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "processed" / "usecases.duckdb"
 
-COLUMNS = [
+AI_TOOLING_USE_CASES_COLUMNS = [
     "id",
     "category",
     "tool_name",
@@ -83,7 +83,7 @@ ACHIEVEMENT_COLUMNS = [
     "notes",
 ]
 
-LINK_COLUMNS = ["use_case_id", "case_study_id", "match_type", "notes"]
+AI_TOOLING_USE_CASE_CASE_STUDY_LINK_COLUMNS = ["ai_tooling_use_case_id", "case_study_id", "match_type", "notes"]
 
 SOURCE_COLUMNS = ["id", "table_name", "record_id", "url", "source_type", "retrieved_at", "notes"]
 
@@ -116,9 +116,9 @@ def get_connection() -> duckdb.DuckDBPyConnection:
 def init_db() -> None:
     con = get_connection()
     con.execute("""
-        CREATE SEQUENCE IF NOT EXISTS use_cases_id_seq START 1;
-        CREATE TABLE IF NOT EXISTS use_cases (
-            id INTEGER PRIMARY KEY DEFAULT nextval('use_cases_id_seq'),
+        CREATE SEQUENCE IF NOT EXISTS ai_tooling_use_cases_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS ai_tooling_use_cases (
+            id INTEGER PRIMARY KEY DEFAULT nextval('ai_tooling_use_cases_id_seq'),
             category TEXT,
             tool_name TEXT,
             vendor TEXT,
@@ -180,10 +180,10 @@ def init_db() -> None:
             name TEXT,
             description TEXT
         );
-        CREATE TABLE IF NOT EXISTS use_case_topics (
-            use_case_id INTEGER,
+        CREATE TABLE IF NOT EXISTS ai_tooling_use_case_topics (
+            ai_tooling_use_case_id INTEGER,
             topic_id INTEGER,
-            PRIMARY KEY (use_case_id, topic_id)
+            PRIMARY KEY (ai_tooling_use_case_id, topic_id)
         );
         CREATE SEQUENCE IF NOT EXISTS achievements_id_seq START 1;
         CREATE TABLE IF NOT EXISTS achievements (
@@ -200,12 +200,12 @@ def init_db() -> None:
             confidence TEXT,
             notes TEXT
         );
-        CREATE TABLE IF NOT EXISTS use_case_case_study_links (
-            use_case_id INTEGER,
+        CREATE TABLE IF NOT EXISTS ai_tooling_use_case_case_study_links (
+            ai_tooling_use_case_id INTEGER,
             case_study_id INTEGER,
             match_type TEXT,
             notes TEXT,
-            PRIMARY KEY (use_case_id, case_study_id)
+            PRIMARY KEY (ai_tooling_use_case_id, case_study_id)
         );
         CREATE SEQUENCE IF NOT EXISTS sources_id_seq START 1;
         CREATE TABLE IF NOT EXISTS sources (
@@ -252,9 +252,9 @@ def init_db() -> None:
     con.close()
 
 
-def load_use_cases(filters: dict | None = None) -> pd.DataFrame:
+def load_ai_tooling_use_cases(filters: dict | None = None) -> pd.DataFrame:
     con = get_connection()
-    df = con.execute("SELECT * FROM use_cases ORDER BY id").fetchdf()
+    df = con.execute("SELECT * FROM ai_tooling_use_cases ORDER BY id").fetchdf()
     con.close()
 
     if not filters:
@@ -279,51 +279,51 @@ def load_use_cases(filters: dict | None = None) -> pd.DataFrame:
     return df
 
 
-def insert_use_case(record: dict) -> int:
+def insert_ai_tooling_use_case(record: dict) -> int:
     con = get_connection()
     record = {**record}
     record.setdefault("collected_at", date.today())
     record.setdefault("last_verified", date.today())
-    fields = [c for c in COLUMNS if c != "id" and c in record]
+    fields = [c for c in AI_TOOLING_USE_CASES_COLUMNS if c != "id" and c in record]
     placeholders = ", ".join(["?"] * len(fields))
     values = [record[f] for f in fields]
     new_id = con.execute(
-        f"INSERT INTO use_cases ({', '.join(fields)}) VALUES ({placeholders}) RETURNING id",
+        f"INSERT INTO ai_tooling_use_cases ({', '.join(fields)}) VALUES ({placeholders}) RETURNING id",
         values,
     ).fetchone()[0]
     con.close()
     return new_id
 
 
-def update_use_case(id: int, record: dict) -> None:
+def update_ai_tooling_use_case(id: int, record: dict) -> None:
     con = get_connection()
     record = {**record, "last_verified": date.today()}
-    fields = [c for c in COLUMNS if c != "id" and c in record]
+    fields = [c for c in AI_TOOLING_USE_CASES_COLUMNS if c != "id" and c in record]
     set_clause = ", ".join(f"{f} = ?" for f in fields)
     values = [record[f] for f in fields] + [id]
-    con.execute(f"UPDATE use_cases SET {set_clause} WHERE id = ?", values)
+    con.execute(f"UPDATE ai_tooling_use_cases SET {set_clause} WHERE id = ?", values)
     con.close()
 
 
-def seed_from_csv(path: str | Path) -> int:
+def seed_ai_tooling_use_cases_from_csv(path: str | Path) -> int:
     con = get_connection()
-    con.execute("DROP TABLE IF EXISTS use_cases")
-    con.execute("DROP SEQUENCE IF EXISTS use_cases_id_seq")
+    con.execute("DROP TABLE IF EXISTS ai_tooling_use_cases")
+    con.execute("DROP SEQUENCE IF EXISTS ai_tooling_use_cases_id_seq")
     con.close()
     init_db()
 
     df = pd.read_csv(path)
     con = get_connection()
     con.register("seed_df", df)
-    cols = [c for c in COLUMNS if c in df.columns and c != "id"]
-    con.execute(f"INSERT INTO use_cases ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
-    count = con.execute("SELECT COUNT(*) FROM use_cases").fetchone()[0]
+    cols = [c for c in AI_TOOLING_USE_CASES_COLUMNS if c in df.columns and c != "id"]
+    con.execute(f"INSERT INTO ai_tooling_use_cases ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM ai_tooling_use_cases").fetchone()[0]
     con.close()
     return count
 
 
-def export_csv(path: str | Path) -> None:
-    df = load_use_cases()
+def export_ai_tooling_use_cases_csv(path: str | Path) -> None:
+    df = load_ai_tooling_use_cases()
     df.to_csv(path, index=False)
 
 
@@ -471,7 +471,7 @@ def insert_topic(record: dict) -> int:
 def seed_topics_from_csv(path: str | Path) -> int:
     # Topic ids are reassigned on reseed, so any existing tagging would point at stale ids.
     con = get_connection()
-    con.execute("DROP TABLE IF EXISTS use_case_topics")
+    con.execute("DROP TABLE IF EXISTS ai_tooling_use_case_topics")
     con.execute("DROP TABLE IF EXISTS topics")
     con.execute("DROP SEQUENCE IF EXISTS topics_id_seq")
     con.close()
@@ -487,23 +487,23 @@ def seed_topics_from_csv(path: str | Path) -> int:
     return count
 
 
-def load_use_case_topics_joined() -> pd.DataFrame:
+def load_ai_tooling_use_case_topics_joined() -> pd.DataFrame:
     con = get_connection()
     df = con.execute("""
-        SELECT uct.use_case_id, t.id AS topic_id, t.name AS topic_name, t.description AS topic_description
-        FROM use_case_topics uct
+        SELECT uct.ai_tooling_use_case_id, t.id AS topic_id, t.name AS topic_name, t.description AS topic_description
+        FROM ai_tooling_use_case_topics uct
         JOIN topics t ON t.id = uct.topic_id
-        ORDER BY uct.use_case_id, t.name
+        ORDER BY uct.ai_tooling_use_case_id, t.name
     """).fetchdf()
     con.close()
     return df
 
 
-def seed_use_case_topics_from_csv(path: str | Path) -> int:
-    """Seed CSV has (use_case_id, topic_name) -- topic_name is resolved to topic_id here,
+def seed_ai_tooling_use_case_topics_from_csv(path: str | Path) -> int:
+    """Seed CSV has (ai_tooling_use_case_id, topic_name) -- topic_name is resolved to topic_id here,
     so `topics` must already be seeded before this runs."""
     con = get_connection()
-    con.execute("DROP TABLE IF EXISTS use_case_topics")
+    con.execute("DROP TABLE IF EXISTS ai_tooling_use_case_topics")
     con.close()
     init_db()
 
@@ -511,12 +511,12 @@ def seed_use_case_topics_from_csv(path: str | Path) -> int:
     con = get_connection()
     con.register("seed_df", df)
     con.execute("""
-        INSERT INTO use_case_topics (use_case_id, topic_id)
-        SELECT seed_df.use_case_id, t.id
+        INSERT INTO ai_tooling_use_case_topics (ai_tooling_use_case_id, topic_id)
+        SELECT seed_df.ai_tooling_use_case_id, t.id
         FROM seed_df
         JOIN topics t ON t.name = seed_df.topic_name
     """)
-    count = con.execute("SELECT COUNT(*) FROM use_case_topics").fetchone()[0]
+    count = con.execute("SELECT COUNT(*) FROM ai_tooling_use_case_topics").fetchone()[0]
     con.close()
     return count
 
@@ -581,30 +581,30 @@ def seed_achievements_from_csv(path: str | Path) -> int:
     return count
 
 
-def load_use_case_case_study_links_joined() -> pd.DataFrame:
+def load_ai_tooling_use_case_case_study_links_joined() -> pd.DataFrame:
     con = get_connection()
     df = con.execute("""
-        SELECT l.use_case_id, l.case_study_id, cs.company_name, cs.tool_or_platform, l.match_type, l.notes
-        FROM use_case_case_study_links l
+        SELECT l.ai_tooling_use_case_id, l.case_study_id, cs.company_name, cs.tool_or_platform, l.match_type, l.notes
+        FROM ai_tooling_use_case_case_study_links l
         JOIN company_case_studies cs ON cs.id = l.case_study_id
-        ORDER BY l.use_case_id
+        ORDER BY l.ai_tooling_use_case_id
     """).fetchdf()
     con.close()
     return df
 
 
-def seed_links_from_csv(path: str | Path) -> int:
+def seed_ai_tooling_use_case_case_study_links_from_csv(path: str | Path) -> int:
     con = get_connection()
-    con.execute("DROP TABLE IF EXISTS use_case_case_study_links")
+    con.execute("DROP TABLE IF EXISTS ai_tooling_use_case_case_study_links")
     con.close()
     init_db()
 
     df = pd.read_csv(path)
     con = get_connection()
     con.register("seed_df", df)
-    cols = [c for c in LINK_COLUMNS if c in df.columns]
-    con.execute(f"INSERT INTO use_case_case_study_links ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
-    count = con.execute("SELECT COUNT(*) FROM use_case_case_study_links").fetchone()[0]
+    cols = [c for c in AI_TOOLING_USE_CASE_CASE_STUDY_LINK_COLUMNS if c in df.columns]
+    con.execute(f"INSERT INTO ai_tooling_use_case_case_study_links ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM ai_tooling_use_case_case_study_links").fetchone()[0]
     con.close()
     return count
 
@@ -629,7 +629,7 @@ def load_sources(filters: dict | None = None) -> pd.DataFrame:
 
 
 def backfill_sources_from_existing() -> int:
-    """Explode the semicolon-separated source_url/source_type already on use_cases,
+    """Explode the semicolon-separated source_url/source_type already on ai_tooling_use_cases,
     company_case_studies, and market_context into individual `sources` rows. Derived from
     those tables rather than hand-authored -- always rebuilds from scratch, safe to re-run."""
     con = get_connection()
@@ -640,7 +640,7 @@ def backfill_sources_from_existing() -> int:
 
     con = get_connection()
     specs = [
-        ("use_cases", "collected_at"),
+        ("ai_tooling_use_cases", "collected_at"),
         ("company_case_studies", "date_reported"),
         ("market_context", None),
     ]

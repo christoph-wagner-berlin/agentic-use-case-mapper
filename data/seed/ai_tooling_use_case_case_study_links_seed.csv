@@ -1,4 +1,4 @@
-use_case_id,case_study_id,match_type,notes
+ai_tooling_use_case_id,case_study_id,match_type,notes
 42,1,direct evidence,Klarna is named directly in this use case's example_companies field.
 15,7,direct evidence,Nubank is named directly in this use case's example_companies field.
 36,8,direct evidence,LinkedIn is named directly in this use case's example_companies field.

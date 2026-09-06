@@ -102,7 +102,7 @@ Scoring should be based on **evidence found during research** (case studies, rep
 
 ## 5a. Company Case Studies (real-world evidence layer)
 
-The `use_cases` table catalogs *types* of agentic-AI applications, not who actually uses them. A separate `company_case_studies` table captures the other half: specific companies that have **publicly reported concrete efficiency gains**, and what they did to achieve them. This is evidence, not taxonomy — one company can report on more than one tool/initiative, and not every case study maps cleanly onto one of the 20 tracked tools.
+The `ai_tooling_use_cases` table catalogs *types* of agentic-AI applications, not who actually uses them. A separate `company_case_studies` table captures the other half: specific companies that have **publicly reported concrete efficiency gains**, and what they did to achieve them. This is evidence, not taxonomy — one company can report on more than one tool/initiative, and not every case study maps cleanly onto one of the 20 tracked tools.
 
 | Field | Type | Description |
 |---|---|---|
@@ -115,11 +115,11 @@ The `use_cases` table catalogs *types* of agentic-AI applications, not who actua
 | `reported_efficiency_gain` | text | The headline claim as reported (may be a percentage, a dollar figure, or a qualitative description) |
 | `gain_type` | text | Semicolon-separated tags reusing the `roi_drivers` vocabulary, plus `headcount efficiency` where relevant |
 | `confidence` | enum | `high`, `moderate`, `directional` — how solid the recalled figure is, not how big the company is |
-| `source_url` | text | Same multi-URL convention as `use_cases` |
-| `source_type` | enum | Same set as `use_cases` |
+| `source_url` | text | Same multi-URL convention as `ai_tooling_use_cases` |
+| `source_type` | enum | Same set as `ai_tooling_use_cases` |
 | `date_reported` | date | Approximate month/year the result was publicized |
 | `notes` | text | Verification caveats |
-| `target_departments` | text | Semicolon-separated business functions/departments involved (same vocabulary as `use_cases.target_departments`, see `config/taxonomy.yaml`) |
+| `target_departments` | text | Semicolon-separated business functions/departments involved (same vocabulary as `ai_tooling_use_cases.target_departments`, see `config/taxonomy.yaml`) |
 | `financial_impact_usd` | double, nullable | A single best-estimate annualized USD figure, populated **only** when a hard number is genuinely publicly reported (e.g. Klarna's $40M). Left `NULL` everywhere else rather than invented — the resulting quantification rate (how many case studies have a real $ figure vs. don't) is itself a finding, surfaced on the Revenue & ROI+ page. |
 | `financial_impact_type` | enum | `profit impact`, `cost savings`, `revenue impact`, `cost avoidance`, `headcount efficiency`, `not quantified` |
 | `deployment_status` | enum | `pilot`, `scaled/production`, `scaled then partially reversed`, `discontinued` — not every pilot survives; this tracks that funnel |

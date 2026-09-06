@@ -53,7 +53,7 @@ categories:
       - name: Claude Agent SDK
         vendor: Anthropic
 
-# Canonical industry list for target_industries (use_cases & company_case_studies).
+# Canonical industry list for target_industries (ai_tooling_use_cases & company_case_studies).
 # Free text is still accepted (extensible per REQUIREMENTS.md NFR2) -- this is the
 # suggested/default set shown in the UI, not a hard enum.
 industries:

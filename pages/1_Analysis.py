@@ -12,7 +12,7 @@ from src.analysis import summaries
 st.set_page_config(page_title="Analysis", layout="wide")
 st.title("Analysis")
 
-df = storage.load_use_cases()
+df = storage.load_ai_tooling_use_cases()
 
 if df.empty:
     st.warning("No data yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
@@ -20,42 +20,42 @@ if df.empty:
 
 kcol1, kcol2, kcol3, kcol4 = st.columns(4)
 named_companies = (df["example_companies"] != "Not publicly disclosed").sum()
-kcol1.metric("Use cases with a named company", f"{named_companies} / {len(df)}")
+kcol1.metric("AI tooling use cases with a named company", f"{named_companies} / {len(df)}")
 mainstream_pct = df["maturity"].isin(["mainstream", "enterprise-standard"]).mean() * 100
 kcol2.metric("Mainstream+ maturity", f"{mainstream_pct:.0f}%")
 kcol3.metric("Median business value score", df["business_value_score"].median())
 top_roi = summaries.roi_driver_counts(df).iloc[0]
-kcol4.metric("Top ROI driver", top_roi["roi_driver"], f"{top_roi['count']} use cases")
+kcol4.metric("Top ROI driver", top_roi["roi_driver"], f"{top_roi['count']} AI tooling use cases")
 
 st.divider()
 st.header("Over time")
 tcol1, tcol2 = st.columns(2)
 with tcol1:
-    st.subheader("Use cases by emergence year")
+    st.subheader("AI tooling use cases by emergence year")
     yearly = summaries.counts_by_year(df)
     fig = px.bar(yearly, x="year", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     fig.update_xaxes(type="category")
     st.plotly_chart(fig, width="stretch")
 with tcol2:
     st.subheader("Cumulative growth")
     cumulative = summaries.cumulative_by_year(df)
     fig = px.line(cumulative, x="year", y="cumulative_count", markers=True)
-    fig.update_layout(xaxis_title="", yaxis_title="Total tracked use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="Total tracked AI tooling use cases")
     fig.update_xaxes(type="category")
     st.plotly_chart(fig, width="stretch")
 
 st.subheader("Category growth over time")
 cat_by_year = summaries.grouped_counts_by_year(df, "category")
 fig = px.area(cat_by_year, x="year", y="count", color="category")
-fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
 fig.update_xaxes(type="category")
 st.plotly_chart(fig, width="stretch")
 
 st.subheader("Department growth over time")
 dept_by_year = summaries.grouped_counts_by_year(df, "target_departments", explode=True)
 fig = px.area(dept_by_year, x="year", y="count", color="target_departments")
-fig.update_layout(xaxis_title="", yaxis_title="Use cases", legend_title="Department")
+fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases", legend_title="Department")
 fig.update_xaxes(type="category")
 st.plotly_chart(fig, width="stretch")
 
@@ -63,10 +63,10 @@ st.divider()
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Use cases per category")
+    st.subheader("AI tooling use cases per category")
     counts = summaries.counts_by_category(df)
     fig = px.bar(counts, x="category", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width='stretch')
 
 with col2:
@@ -79,7 +79,7 @@ with col2:
 col3, col4 = st.columns(2)
 
 with col3:
-    st.subheader("Use cases by maturity")
+    st.subheader("AI tooling use cases by maturity")
     maturity_counts = summaries.counts_by_maturity(df)
     fig = px.pie(maturity_counts, names="maturity", values="count")
     st.plotly_chart(fig, width='stretch')
@@ -95,10 +95,10 @@ st.divider()
 dcol1, dcol2 = st.columns(2)
 
 with dcol1:
-    st.subheader("Use cases per department")
+    st.subheader("AI tooling use cases per department")
     dept_counts = summaries.department_counts(df)
     fig = px.bar(dept_counts, x="department", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Use cases")
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width='stretch')
 
 with dcol2:
@@ -120,14 +120,14 @@ fig = px.scatter(
     color="category",
 )
 fig.update_traces(textposition="top center")
-fig.update_layout(xaxis_title="Number of use cases", yaxis_title="Avg. business value score", showlegend=False)
+fig.update_layout(xaxis_title="Number of AI tooling use cases", yaxis_title="Avg. business value score", showlegend=False)
 st.plotly_chart(fig, width='stretch')
 
 st.divider()
-st.subheader("Use cases by category (browse titles)")
+st.subheader("AI tooling use cases by category (browse titles)")
 for category in sorted(df["category"].unique()):
     sub = df[df["category"] == category].sort_values("business_value_score", ascending=False)
-    with st.expander(f"{category} ({len(sub)} use cases)"):
+    with st.expander(f"{category} ({len(sub)} AI tooling use cases)"):
         for _, row in sub.iterrows():
             st.markdown(
                 f"- **{row['tool_name']}** — {row['use_case_title']} (score {row['business_value_score']}/5, {row['maturity']})\n"

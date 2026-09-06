@@ -1,4 +1,4 @@
-"""Pure analysis functions over the use_cases DataFrame. No Streamlit imports here."""
+"""Pure analysis functions over the ai_tooling_use_cases DataFrame. No Streamlit imports here."""
 
 import numpy as np
 import pandas as pd

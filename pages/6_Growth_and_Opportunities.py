@@ -22,7 +22,7 @@ st.warning(
     icon="⚠️",
 )
 
-df = storage.load_use_cases()
+df = storage.load_ai_tooling_use_cases()
 cs = storage.load_case_studies()
 
 if df.empty:
@@ -46,8 +46,8 @@ merged["history_status"] = merged["insufficient_history"].map({True: "New / insu
 st.divider()
 st.header("Value vs. growth vs. maturity")
 st.caption(
-    "Every point is one " + dimension.lower() + ". X = growth momentum (share of its use cases that "
-    "are brand new), Y = average business value score, bubble size = how many use cases exist today, "
+    "Every point is one " + dimension.lower() + ". X = growth momentum (share of its AI tooling use cases that "
+    "are brand new), Y = average business value score, bubble size = how many AI tooling use cases exist today, "
     "color = how much of it has reached mainstream/enterprise-standard maturity. Dotted lines mark the "
     "median across established trends (new/thin-history points are shown but excluded from the median "
     "so a couple of noisy debutants can't drag it around)."
@@ -93,7 +93,7 @@ st.dataframe(
     hide_index=True, width="stretch",
     column_config={
         group_col: dimension,
-        "total_count": "Use cases",
+        "total_count": "AI tooling use cases",
         "avg_business_value_score": st.column_config.NumberColumn("Avg. value (1-5)", format="%.2f"),
         "recent_share": st.column_config.ProgressColumn("Growth (recent share)", min_value=0, max_value=1, format="%.0f%%"),
         "maturity_readiness_pct": st.column_config.ProgressColumn("Maturity readiness", min_value=0, max_value=1, format="%.0f%%"),
@@ -106,7 +106,7 @@ st.divider()
 st.header("Where's the untapped value?")
 st.caption(
     "Every (industry, department) pair where that department scores well across the dataset as a "
-    "whole but this industry has 0-1 use cases of it today — a proven pattern this industry hasn't "
+    "whole but this industry has 0-1 AI tooling use cases of it today — a proven pattern this industry hasn't "
     "applied yet. Sorted by how proven the department pattern is elsewhere."
 )
 opportunities = summaries.opportunity_finder(df)
@@ -117,7 +117,7 @@ st.dataframe(
     opp_display, hide_index=True, width="stretch",
     column_config={
         "industry": "Industry", "department": "Department",
-        "current_count": "Use cases today",
+        "current_count": "AI tooling use cases today",
         "department_global_avg_score": st.column_config.NumberColumn("Department's proven value elsewhere", format="%.2f"),
     },
 )
@@ -125,8 +125,8 @@ st.dataframe(
 st.divider()
 st.header("What's mature and ready to build on")
 st.caption(
-    "Ranked by share of use cases already at mainstream/enterprise-standard maturity — the "
-    f"strongest foundations to extend with adjacent {dimension.lower()}-specific use cases, "
+    "Ranked by share of AI tooling use cases already at mainstream/enterprise-standard maturity — the "
+    f"strongest foundations to extend with adjacent {dimension.lower()}-specific AI tooling use cases, "
     "rather than starting from zero."
 )
 if dimension == "Industry":
@@ -139,7 +139,7 @@ else:
 
 display_cols = [group_col, "total_count", "mature_count", "maturity_readiness_pct"]
 col_config = {
-    group_col: dimension, "total_count": "Use cases", "mature_count": "Mainstream+ use cases",
+    group_col: dimension, "total_count": "AI tooling use cases", "mature_count": "Mainstream+ AI tooling use cases",
     "maturity_readiness_pct": st.column_config.ProgressColumn("Maturity readiness", min_value=0, max_value=1, format="%.0f%%"),
 }
 if "scaled_case_studies" in maturity_display.columns:

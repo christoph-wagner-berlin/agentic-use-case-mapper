@@ -9,17 +9,17 @@ import streamlit as st
 from src import storage
 
 st.set_page_config(page_title="Explore Data", layout="wide")
-st.title("Explore Use Cases")
+st.title("Explore AI Tooling Use Cases")
 
-df = storage.load_use_cases()
+df = storage.load_ai_tooling_use_cases()
 
 if df.empty:
     st.warning("No data yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
-topics_joined = storage.load_use_case_topics_joined()
-links_joined = storage.load_use_case_case_study_links_joined()
-topics_by_use_case = topics_joined.groupby("use_case_id")["topic_name"].apply(list) if not topics_joined.empty else pd.Series(dtype=object)
+topics_joined = storage.load_ai_tooling_use_case_topics_joined()
+links_joined = storage.load_ai_tooling_use_case_case_study_links_joined()
+topics_by_use_case = topics_joined.groupby("ai_tooling_use_case_id")["topic_name"].apply(list) if not topics_joined.empty else pd.Series(dtype=object)
 
 all_industries = sorted(
     set(
@@ -65,7 +65,7 @@ if departments:
         )
     ]
 if topics_filter:
-    matching_ids = set(topics_joined[topics_joined["topic_name"].isin(topics_filter)]["use_case_id"])
+    matching_ids = set(topics_joined[topics_joined["topic_name"].isin(topics_filter)]["ai_tooling_use_case_id"])
     filtered = filtered[filtered["id"].isin(matching_ids)]
 filtered = filtered[filtered["business_value_score"] >= min_score]
 if search_text:
@@ -75,7 +75,7 @@ if search_text:
         | filtered["roi_drivers"].str.lower().str.contains(needle, na=False)
     ]
 
-st.caption(f"{len(filtered)} of {len(df)} use cases match the current filters.")
+st.caption(f"{len(filtered)} of {len(df)} AI tooling use cases match the current filters.")
 
 display_df = filtered.copy()
 display_df["topics"] = display_df["id"].map(lambda i: "; ".join(topics_by_use_case.get(i, [])))
@@ -110,16 +110,16 @@ st.dataframe(
 st.download_button(
     "Download filtered results as CSV",
     filtered.to_csv(index=False).encode("utf-8"),
-    file_name="use_cases_filtered.csv",
+    file_name="ai_tooling_use_cases_filtered.csv",
     mime="text/csv",
 )
 
 st.divider()
-st.subheader("Use case detail")
+st.subheader("AI tooling use case detail")
 
 if not filtered.empty:
     options = filtered.apply(lambda r: f"[{r['id']}] {r['tool_name']} — {r['use_case_title']}", axis=1)
-    choice = st.selectbox("Select a use case", options)
+    choice = st.selectbox("Select an AI tooling use case", options)
     selected_id = int(choice.split("]")[0][1:])
     row = filtered[filtered["id"] == selected_id].iloc[0]
 
@@ -137,7 +137,7 @@ if not filtered.empty:
     st.markdown(f"**Example companies:** {row['example_companies']}")
     st.markdown(f"**Rationale:** {row['business_value_rationale']}")
 
-    related_links = links_joined[links_joined["use_case_id"] == selected_id] if not links_joined.empty else links_joined
+    related_links = links_joined[links_joined["ai_tooling_use_case_id"] == selected_id] if not links_joined.empty else links_joined
     if not related_links.empty:
         st.markdown("**Related case studies:**")
         for _, link_row in related_links.iterrows():
