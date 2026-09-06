@@ -35,3 +35,7 @@ def industry_names() -> list[str]:
 
 def department_names() -> list[str]:
     return load_taxonomy().get("departments", [])
+
+
+def company_size_band_names() -> list[str]:
+    return load_taxonomy().get("company_size_bands", [])

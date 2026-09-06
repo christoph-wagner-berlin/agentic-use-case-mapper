@@ -56,6 +56,7 @@ erDiagram
         date first_available
         string target_industries
         string target_departments
+        string target_company_size
     }
 
     COMPANY_CASE_STUDIES {
@@ -76,6 +77,8 @@ erDiagram
         double financial_impact_usd
         string financial_impact_type
         string deployment_status
+        string company_size_band
+        double implementation_cost_usd
     }
 
     MARKET_CONTEXT {
@@ -169,6 +172,15 @@ erDiagram
 ```
 
 ## Field notes
+
+**Company size and cost are asymmetric fields, on purpose.**
+`ai_tooling_use_cases.target_company_size` is semicolon-separated (like `target_industries`) since
+one tool/use case can fit many size bands; `company_case_studies.company_size_band` is a single
+value since one case study is about one company. `implementation_cost_usd` mirrors
+`financial_impact_usd`'s "hard number or NULL, never invent" policy — as of the last reseed, **zero**
+case studies disclose both a gain and a cost, so `src/analysis/summaries.py::net_roi()` (surfaced on
+the Revenue & ROI+ page) is expected to render empty. That emptiness is itself the finding: public
+AI case studies report the win far more often than the spend.
 
 **No constraint enforces any of this.**
 DuckDB's `CREATE TABLE` statements declare plain `INTEGER` columns — there isn't a single

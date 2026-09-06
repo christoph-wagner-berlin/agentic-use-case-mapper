@@ -282,6 +282,37 @@ def financial_impact_by_department(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def financial_impact_by_company_size(df: pd.DataFrame) -> pd.DataFrame:
+    quantified = df[df["financial_impact_usd"].notna()]
+    return (
+        quantified.groupby("company_size_band")["financial_impact_usd"]
+        .sum()
+        .reset_index(name="total_financial_impact_usd")
+        .sort_values("total_financial_impact_usd", ascending=False)
+    )
+
+
+def net_roi(df: pd.DataFrame) -> pd.DataFrame:
+    """Case studies with both a disclosed gain and a disclosed implementation cost --
+    computed at read time (not stored) so it can't drift from either source figure.
+    Most rows lack a disclosed cost, so this is expected to cover only a few rows;
+    that scarcity is itself the honest finding, not a bug."""
+    both = df[df["financial_impact_usd"].notna() & df["implementation_cost_usd"].notna()].copy()
+    both["net_impact_usd"] = both["financial_impact_usd"] - both["implementation_cost_usd"]
+    both["roi_multiple"] = both["financial_impact_usd"] / both["implementation_cost_usd"]
+    return both[
+        [
+            "company_name",
+            "industry",
+            "company_size_band",
+            "financial_impact_usd",
+            "implementation_cost_usd",
+            "net_impact_usd",
+            "roi_multiple",
+        ]
+    ].sort_values("net_impact_usd", ascending=False)
+
+
 def deployment_status_counts(df: pd.DataFrame) -> pd.DataFrame:
     order = ["pilot", "scaled/production", "scaled then partially reversed", "discontinued"]
     counts = df.groupby("deployment_status").size().reset_index(name="count")

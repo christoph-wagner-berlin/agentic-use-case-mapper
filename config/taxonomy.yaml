@@ -89,3 +89,12 @@ departments:
   - HR
   - Legal/Compliance
   - Cross-functional
+
+# Canonical company-size/revenue-band list for target_company_size (ai_tooling_use_cases)
+# and company_size_band (company_case_studies). Same convention as industries/departments:
+# suggested set, still free text under the hood.
+company_size_bands:
+  - SMB (<$10M)
+  - Mid-market ($10M-$100M)
+  - Mid-large ($100M-$1B)
+  - Enterprise ($1B+)

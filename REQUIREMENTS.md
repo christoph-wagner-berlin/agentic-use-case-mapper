@@ -58,6 +58,7 @@ Each row in the dataset represents one **use case** with the following fields:
 | `first_available` | date | Approximate month the tool/use case first became publicly available (estimated from known launch/GA milestones) |
 | `target_industries` | text | Semicolon-separated industries most relevant to this use case (e.g. "Software/Technology", "Automotive", "Energy/Utilities", "Cross-industry"). Suggested vocabulary lives in `config/taxonomy.yaml` (`industries`); free text beyond that list is accepted. |
 | `target_departments` | text | Semicolon-separated business functions/departments this use case serves (e.g. "Sales", "After-Sales/Service", "IT", "R&D/Engineering", "Cross-functional"). Suggested vocabulary lives in `config/taxonomy.yaml` (`departments`); free text beyond that list is accepted. |
+| `target_company_size` | text | Semicolon-separated company-size/revenue bands this tool/use case is realistically adoptable by (e.g. "SMB (<$10M)", "Mid-market ($10M-$100M)"). Suggested vocabulary lives in `config/taxonomy.yaml` (`company_size_bands`); free text beyond that list is accepted. Most rows default to all bands where no size signal is evident -- this is an honest "unknown," not a claim of universal fit. |
 
 ### 3.1 Business/ROI value scoring rubric (`business_value_score`)
 
@@ -123,6 +124,8 @@ The `ai_tooling_use_cases` table catalogs *types* of agentic-AI applications, no
 | `financial_impact_usd` | double, nullable | A single best-estimate annualized USD figure, populated **only** when a hard number is genuinely publicly reported (e.g. Klarna's $40M). Left `NULL` everywhere else rather than invented — the resulting quantification rate (how many case studies have a real $ figure vs. don't) is itself a finding, surfaced on the Revenue & ROI+ page. |
 | `financial_impact_type` | enum | `profit impact`, `cost savings`, `revenue impact`, `cost avoidance`, `headcount efficiency`, `not quantified` |
 | `deployment_status` | enum | `pilot`, `scaled/production`, `scaled then partially reversed`, `discontinued` — not every pilot survives; this tracks that funnel |
+| `company_size_band` | text | This company's size/revenue band (e.g. "SMB (<$10M)", "Enterprise ($1B+)"). Single value, since a case study is about one company. Suggested vocabulary lives in `config/taxonomy.yaml` (`company_size_bands`). |
+| `implementation_cost_usd` | double, nullable | The disclosed cost/investment required to achieve the reported gain, populated **only** when a hard number is genuinely publicly reported. Left `NULL` otherwise (the overwhelming majority of rows) — same "don't invent" policy as `financial_impact_usd`. Paired with it at read time (`src/analysis/summaries.py::net_roi`) to compute a net gain-minus-cost figure, never stored. |
 
 This dataset is knowledge-based and **not independently re-verified** — the Real-World Impact page (`pages/4_Real_World_Impact.py`) carries a persistent disclaimer to that effect, and `confidence` is meant to be read before treating any figure as fact.
 

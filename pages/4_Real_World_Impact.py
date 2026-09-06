@@ -33,6 +33,7 @@ all_departments = sorted(
 all_gain_types = sorted(
     set(df["gain_type"].dropna().str.split(";").explode().str.strip()) - {""}
 )
+all_company_sizes = sorted(df["company_size_band"].dropna().unique())
 
 with st.sidebar:
     st.header("Filters")
@@ -43,6 +44,7 @@ with st.sidebar:
     deployment_statuses = st.multiselect(
         "Deployment status", ["pilot", "scaled/production", "scaled then partially reversed", "discontinued"]
     )
+    company_sizes = st.multiselect("Company size", all_company_sizes)
 
 filtered = df.copy()
 if industries:
@@ -63,8 +65,16 @@ if confidences:
     filtered = filtered[filtered["confidence"].isin(confidences)]
 if deployment_statuses:
     filtered = filtered[filtered["deployment_status"].isin(deployment_statuses)]
+if company_sizes:
+    filtered = filtered[filtered["company_size_band"].isin(company_sizes)]
 
 st.caption(f"{len(filtered)} of {len(df)} company case studies match the current filters.")
+if company_sizes and filtered.empty:
+    st.info(
+        "No case studies at this company-size scale yet — a real data gap, not a bug. Most of "
+        "this dataset skews enterprise; the handful of mid-market/SMB rows are concentrated in "
+        "finance/back-office automation, B2B sales, and B2B customer support."
+    )
 
 kcol1, kcol2, kcol3 = st.columns(3)
 kcol1.metric("Companies", filtered["company_name"].nunique())
@@ -150,6 +160,7 @@ for _, row in filtered.sort_values("date_reported", ascending=False).iterrows():
     status_badge = status_icon.get(status, "")
     with st.expander(f"{conf_badge} {status_badge} {row['company_name']} — {row['tool_or_platform']} ({row['industry']})"):
         st.markdown(f"**Departments involved:** {row['target_departments'] or 'Not specified'}")
+        st.markdown(f"**Company size:** {row.get('company_size_band') or 'Not specified'}")
         if row["related_category"]:
             st.markdown(f"**Related category:** {row['related_category']}")
         st.markdown(f"**Deployment status:** {status or 'Not specified'}")
@@ -157,6 +168,8 @@ for _, row in filtered.sort_values("date_reported", ascending=False).iterrows():
         st.markdown(f"**Reported gain:** {row['reported_efficiency_gain']}")
         if pd.notna(row.get("financial_impact_usd")):
             st.markdown(f"**Disclosed $ impact:** ${row['financial_impact_usd']:,.0f}/yr ({row.get('financial_impact_type') or 'unspecified type'})")
+        if pd.notna(row.get("implementation_cost_usd")):
+            st.markdown(f"**Disclosed implementation cost:** ${row['implementation_cost_usd']:,.0f}")
         st.markdown(f"**Gain type:** {row['gain_type']} &nbsp;|&nbsp; **Confidence:** {row['confidence']}")
         urls = [u.strip() for u in str(row["source_url"]).split(";") if u.strip()]
         sources_md = " · ".join(f"[{u}]({u})" for u in urls)

@@ -29,6 +29,7 @@ AI_TOOLING_USE_CASES_COLUMNS = [
     "first_available",
     "target_industries",
     "target_departments",
+    "target_company_size",
 ]
 
 CASE_STUDY_COLUMNS = [
@@ -49,6 +50,8 @@ CASE_STUDY_COLUMNS = [
     "financial_impact_usd",
     "financial_impact_type",
     "deployment_status",
+    "company_size_band",
+    "implementation_cost_usd",
 ]
 
 MARKET_CONTEXT_COLUMNS = [
@@ -137,7 +140,8 @@ def init_db() -> None:
             notes TEXT,
             first_available DATE,
             target_industries TEXT,
-            target_departments TEXT
+            target_departments TEXT,
+            target_company_size TEXT
         );
         CREATE SEQUENCE IF NOT EXISTS company_case_studies_id_seq START 1;
         CREATE TABLE IF NOT EXISTS company_case_studies (
@@ -157,7 +161,9 @@ def init_db() -> None:
             target_departments TEXT,
             financial_impact_usd DOUBLE,
             financial_impact_type TEXT,
-            deployment_status TEXT
+            deployment_status TEXT,
+            company_size_band TEXT,
+            implementation_cost_usd DOUBLE
         );
         CREATE SEQUENCE IF NOT EXISTS market_context_id_seq START 1;
         CREATE TABLE IF NOT EXISTS market_context (

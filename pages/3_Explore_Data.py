@@ -33,6 +33,12 @@ all_departments = sorted(
     )
     - {""}
 )
+all_company_sizes = sorted(
+    set(
+        df["target_company_size"].dropna().str.split(";").explode().str.strip()
+    )
+    - {""}
+)
 
 with st.sidebar:
     st.header("Filters")
@@ -41,6 +47,7 @@ with st.sidebar:
     maturities = st.multiselect("Maturity", sorted(df["maturity"].unique()))
     industries = st.multiselect("Industry", all_industries)
     departments = st.multiselect("Department / business function", all_departments)
+    company_sizes = st.multiselect("Company size", all_company_sizes)
     topics_filter = st.multiselect("Topic", sorted(topics_joined["topic_name"].unique()) if not topics_joined.empty else [])
     min_score = st.slider("Minimum business value score", 1, 5, 1)
     search_text = st.text_input("Search (title / ROI drivers)")
@@ -64,6 +71,12 @@ if departments:
             lambda v: any(d in [p.strip() for p in str(v).split(";")] for d in departments)
         )
     ]
+if company_sizes:
+    filtered = filtered[
+        filtered["target_company_size"].apply(
+            lambda v: any(s in [p.strip() for p in str(v).split(";")] for s in company_sizes)
+        )
+    ]
 if topics_filter:
     matching_ids = set(topics_joined[topics_joined["topic_name"].isin(topics_filter)]["ai_tooling_use_case_id"])
     filtered = filtered[filtered["id"].isin(matching_ids)]
@@ -76,6 +89,12 @@ if search_text:
     ]
 
 st.caption(f"{len(filtered)} of {len(df)} AI tooling use cases match the current filters.")
+if company_sizes and filtered.empty:
+    st.info(
+        "No AI tooling use cases are tagged for this company size yet — a real data gap in this "
+        "dataset, not a bug. Most tools skew toward enterprise-scale evidence; try widening the "
+        "company-size filter."
+    )
 
 display_df = filtered.copy()
 display_df["topics"] = display_df["id"].map(lambda i: "; ".join(topics_by_use_case.get(i, [])))
@@ -93,6 +112,7 @@ st.dataframe(
             "roi_drivers",
             "target_industries",
             "target_departments",
+            "target_company_size",
             "example_companies",
         ]
     ],
@@ -103,6 +123,7 @@ st.dataframe(
         "topics": st.column_config.TextColumn("Topics"),
         "target_industries": st.column_config.TextColumn("Industries"),
         "target_departments": st.column_config.TextColumn("Departments"),
+        "target_company_size": st.column_config.TextColumn("Company size"),
         "example_companies": st.column_config.TextColumn("Example companies"),
     },
 )
@@ -129,6 +150,7 @@ if not filtered.empty:
     st.markdown(f"**Target users:** {row['target_users']}")
     st.markdown(f"**Target industries:** {row['target_industries']}")
     st.markdown(f"**Target departments:** {row['target_departments']}")
+    st.markdown(f"**Company size:** {row['target_company_size']}")
     row_topics = topics_by_use_case.get(selected_id, [])
     if row_topics:
         st.markdown(f"**Topics:** {'; '.join(row_topics)}")

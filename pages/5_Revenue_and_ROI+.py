@@ -84,7 +84,7 @@ with tcol2:
 st.caption("Small yearly totals (single digits to low teens) mean each year's rate swings a lot on just one or two case studies — read it as a rough signal, not a precise trend.")
 
 st.divider()
-fcol1, fcol2, fcol3 = st.columns(3)
+fcol1, fcol2, fcol3, fcol4 = st.columns(4)
 with fcol1:
     st.subheader("Disclosed $ impact by industry")
     fi_industry = summaries.financial_impact_by_industry(cs)
@@ -104,6 +104,15 @@ with fcol2:
         fig.update_layout(xaxis_title="", yaxis_title="USD / year")
         st.plotly_chart(fig, width="stretch")
 with fcol3:
+    st.subheader("Disclosed $ impact by company size")
+    fi_size = summaries.financial_impact_by_company_size(cs)
+    if fi_size.empty:
+        st.info("No case study currently has a quantified $ figure for this filter.")
+    else:
+        fig = px.bar(fi_size, x="company_size_band", y="total_financial_impact_usd", text="total_financial_impact_usd")
+        fig.update_layout(xaxis_title="", yaxis_title="USD / year")
+        st.plotly_chart(fig, width="stretch")
+with fcol4:
     st.subheader("Deployment status")
     dep_counts = summaries.deployment_status_counts(cs)
     fig = px.bar(dep_counts, x="deployment_status", y="count", text="count")
@@ -156,6 +165,38 @@ else:
             st.markdown(f"**Deployment status:** {row['deployment_status']}")
             st.markdown(f"**Reported gain:** {row['reported_efficiency_gain']}")
             st.caption(f"Confidence: {row['confidence']}")
+
+st.divider()
+st.header("Net ROI (gain minus cost)")
+st.caption(
+    "Everything above nets gross *gain* only. `implementation_cost_usd` captures the disclosed "
+    "spend/investment required to achieve that gain — populated only when a hard number is "
+    "genuinely publicly reported, same policy as `financial_impact_usd`. This table is the small "
+    "subset of case studies that disclose **both** figures, so a real net ROI can be computed "
+    "instead of assumed."
+)
+roi = summaries.net_roi(cs)
+if roi.empty:
+    st.info(
+        "No case study in the current filter discloses both a gain and an implementation cost — "
+        "most public AI success stories report the win without the spend, which is itself a "
+        "finding: gross-gain headlines are common, netted ROI is rare."
+    )
+else:
+    st.dataframe(
+        roi,
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "company_name": "Company",
+            "industry": "Industry",
+            "company_size_band": "Company size",
+            "financial_impact_usd": st.column_config.NumberColumn("Disclosed gain ($/yr)", format="$%.0f"),
+            "implementation_cost_usd": st.column_config.NumberColumn("Disclosed cost ($)", format="$%.0f"),
+            "net_impact_usd": st.column_config.NumberColumn("Net impact ($)", format="$%.0f"),
+            "roi_multiple": st.column_config.NumberColumn("ROI multiple", format="%.1fx"),
+        },
+    )
 
 st.download_button(
     "Download market context as CSV",
