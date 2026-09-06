@@ -1,8 +1,9 @@
 # Data Model
 
-Eleven DuckDB tables behind the use-case catalog, company case studies, market stats,
-achievements, and the agent/pattern catalog. Schema defined in [`src/storage.py`](../src/storage.py)'s
-`init_db()`; database file at `data/processed/usecases.duckdb`; seeded from `data/seed/*.csv`.
+Twelve DuckDB tables behind the use-case catalog, company case studies, market stats,
+achievements, the agent/pattern catalog, and the enterprise-AI-startup vendor catalog. Schema
+defined in [`src/storage.py`](../src/storage.py)'s `init_db()`; database file at
+`data/processed/usecases.duckdb`; seeded from `data/seed/*.csv`.
 
 **None of this is enforced by DuckDB** — every `CREATE TABLE` uses plain `INTEGER` columns with
 no `FOREIGN KEY` constraints. Every relationship below is upheld by `storage.py`'s load/join
@@ -12,10 +13,10 @@ functions and by the seed order in `scripts/seed_db.py`, not by the database.
 
 | Category | Tables |
 |---|---|
-| Entity (own primary key) | `ai_tooling_use_cases`, `company_case_studies`, `market_context`, `achievements`, `agents`, `agent_patterns`, `topics` |
+| Entity (own primary key) | `ai_tooling_use_cases`, `company_case_studies`, `market_context`, `achievements`, `agents`, `agent_patterns`, `topics`, `enterprise_ai_startups` |
 | Join (composite key of two FKs) | `ai_tooling_use_case_topics`, `ai_tooling_use_case_case_study_links`, `agent_pattern_links` |
 | Derived (rebuilt from other tables) | `sources` |
-| External config (not a DB table) | `config/taxonomy.yaml` — categories → tools, industries, departments; loaded by `src/taxonomy.py` for dropdown suggestions only, not enforced |
+| External config (not a DB table) | `config/taxonomy.yaml` — categories → tools, industries, departments, company_size_bands; loaded by `src/taxonomy.py` for dropdown suggestions only, not enforced |
 
 ## Entity-relationship diagram
 
@@ -169,9 +170,37 @@ erDiagram
         date retrieved_at
         string notes
     }
+
+    ENTERPRISE_AI_STARTUPS {
+        int id PK
+        string company_name
+        string product_name
+        string target_departments
+        string what_they_do
+        string target_company_size
+        string engagement_model
+        string pricing_signal
+        string funding_stage
+        string notable_customers
+        string source_url
+        string source_type
+        string confidence
+        date collected_at
+        date last_verified
+        string notes
+    }
 ```
 
 ## Field notes
+
+**`enterprise_ai_startups` tracks vendors, not customers — deliberately unlinked.**
+`company_case_studies` tracks companies that *use* AI tools; `enterprise_ai_startups` tracks the
+*vendors/startups* that build non-engineering enterprise-workflow AI (finance, sales, support,
+legal, HR — coding/dev-agent startups are already covered by `agents`). No join table connects
+them; `pages/8_Startup_Vendors.py` cross-references by matching `company_case_studies.tool_or_platform`
+against a startup's name at read time, the same "don't add a join table when a read-time lookup
+suffices" call made for `sources`. `engagement_model` is the field this table exists for — what a
+prospect actually has to do to engage each vendor (self-serve signup vs. fully sales-gated demo).
 
 **Company size and cost are asymmetric fields, on purpose.**
 `ai_tooling_use_cases.target_company_size` is semicolon-separated (like `target_industries`) since

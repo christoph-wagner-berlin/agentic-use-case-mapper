@@ -17,6 +17,12 @@ categories:
         vendor: OpenAI
       - name: Devin
         vendor: Cognition
+      - name: Devin Desktop
+        vendor: Cognition
+      - name: Kiro
+        vendor: Amazon (AWS)
+      - name: Replit Agent
+        vendor: Replit
 
   - name: General-purpose/browser agents
     tools:
@@ -28,6 +34,8 @@ categories:
         vendor: Google DeepMind
       - name: Manus
         vendor: Butterfly Effect
+      - name: Claude in Chrome
+        vendor: Anthropic
 
   - name: Research/multi-step task agents
     tools:
@@ -39,6 +47,10 @@ categories:
         vendor: Anthropic
       - name: AutoGPT/BabyAGI (legacy)
         vendor: Open Source
+      - name: Gemini Deep Research
+        vendor: Google
+      - name: Elicit
+        vendor: Elicit
 
   - name: Enterprise/workflow agents
     tools:
@@ -52,6 +64,24 @@ categories:
         vendor: OpenAI
       - name: Claude Agent SDK
         vendor: Anthropic
+      - name: Microsoft Copilot Studio
+        vendor: Microsoft
+      - name: Salesforce Agentforce
+        vendor: Salesforce
+      - name: ServiceNow AI Agents
+        vendor: ServiceNow
+      - name: IBM watsonx Orchestrate
+        vendor: IBM
+      - name: Zapier Agents
+        vendor: Zapier
+      - name: Glean
+        vendor: Glean
+      - name: Writer Agent
+        vendor: Writer
+      - name: UiPath Agentic Automation
+        vendor: UiPath
+      - name: Gemini Enterprise
+        vendor: Google
 
 # Canonical industry list for target_industries (ai_tooling_use_cases & company_case_studies).
 # Free text is still accepted (extensible per REQUIREMENTS.md NFR2) -- this is the

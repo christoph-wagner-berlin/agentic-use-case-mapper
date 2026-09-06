@@ -18,6 +18,7 @@ LINKS_SEED_CSV = SEED_DIR / "ai_tooling_use_case_case_study_links_seed.csv"
 AGENTS_SEED_CSV = SEED_DIR / "agents_seed.csv"
 AGENT_PATTERNS_SEED_CSV = SEED_DIR / "agent_patterns_seed.csv"
 AGENT_PATTERN_LINKS_SEED_CSV = SEED_DIR / "agent_pattern_links_seed.csv"
+ENTERPRISE_AI_STARTUPS_SEED_CSV = SEED_DIR / "enterprise_ai_startups_seed.csv"
 
 
 def main() -> None:
@@ -47,6 +48,9 @@ def main() -> None:
     print(f"Seeded {agent_patterns_count} agent patterns into {storage.DB_PATH}")
     agent_pattern_links_count = storage.seed_agent_pattern_links_from_csv(AGENT_PATTERN_LINKS_SEED_CSV)
     print(f"Seeded {agent_pattern_links_count} agent/pattern links into {storage.DB_PATH}")
+
+    startups_count = storage.seed_enterprise_ai_startups_from_csv(ENTERPRISE_AI_STARTUPS_SEED_CSV)
+    print(f"Seeded {startups_count} enterprise AI startups into {storage.DB_PATH}")
 
 
 if __name__ == "__main__":

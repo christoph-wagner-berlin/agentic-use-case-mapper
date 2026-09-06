@@ -152,6 +152,27 @@ Two more layers sit on top of 5a, both surfaced on `pages/5_Revenue_and_ROI+.py`
 
 Seeded from `data/seed/market_context_seed.csv` via `storage.seed_market_context_from_csv()`, called by `scripts/seed_db.py` alongside the other two seed files.
 
+## 5c. Enterprise AI Startup Vendors
+
+`company_case_studies` tracks companies that *use* AI tools; `enterprise_ai_startups` tracks the *vendors/startups* that build non-engineering enterprise-workflow AI (finance, sales, support, legal, HR — coding/dev-agent startups are already covered by the `agents` table in section 2.1). Surfaced on `pages/8_Startup_Vendors.py` ("Startup Vendors"), which cross-references `company_case_studies.tool_or_platform` against a startup's name at read time — no join table, same pattern as `sources`.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Unique identifier |
+| `company_name`, `product_name` | text | Often identical; kept separate for cases like Cognition/Devin-style naming |
+| `target_departments` | text | Semicolon-separated, same `config/taxonomy.yaml` vocabulary as elsewhere |
+| `what_they_do` | text | 1-2 sentence description |
+| `target_company_size` | text | Semicolon-separated company-size bands (`config/taxonomy.yaml`'s `company_size_bands`) this vendor is realistically built/priced for |
+| `engagement_model` | text | The field this table exists for: what a prospect actually has to do to engage this vendor (e.g. "self-serve signup, no sales gate" vs. "fully sales-gated, demo call required") |
+| `pricing_signal` | text, nullable | Usage-based / per-seat / custom-enterprise-only / not publicly disclosed — "not disclosed" is an honest value here, not a gap to fill in |
+| `funding_stage` | text, nullable | Most recent known round and total raised; genuinely conflicting source data is noted as such rather than resolved by guessing |
+| `notable_customers` | text, nullable | Semicolon-separated; cross-references `company_case_studies.company_name` where applicable |
+| `source_url`, `source_type`, `confidence` | text/enum | Same convention as other tables |
+| `collected_at`, `last_verified` | date | Same convention as `ai_tooling_use_cases` |
+| `notes` | text | Caveats |
+
+Seeded from `data/seed/enterprise_ai_startups_seed.csv` via `storage.seed_enterprise_ai_startups_from_csv()`.
+
 ## 6. Research/Data Sources (starting points)
 
 - Vendor documentation and official case studies/blogs

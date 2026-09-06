@@ -110,6 +110,25 @@ AGENT_PATTERN_COLUMNS = ["id", "name", "description", "when_it_works_well", "sou
 
 AGENT_PATTERN_LINK_COLUMNS = ["agent_id", "pattern_id", "notes"]
 
+ENTERPRISE_AI_STARTUP_COLUMNS = [
+    "id",
+    "company_name",
+    "product_name",
+    "target_departments",
+    "what_they_do",
+    "target_company_size",
+    "engagement_model",
+    "pricing_signal",
+    "funding_stage",
+    "notable_customers",
+    "source_url",
+    "source_type",
+    "confidence",
+    "collected_at",
+    "last_verified",
+    "notes",
+]
+
 
 def get_connection() -> duckdb.DuckDBPyConnection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -253,6 +272,25 @@ def init_db() -> None:
             pattern_id INTEGER,
             notes TEXT,
             PRIMARY KEY (agent_id, pattern_id)
+        );
+        CREATE SEQUENCE IF NOT EXISTS enterprise_ai_startups_id_seq START 1;
+        CREATE TABLE IF NOT EXISTS enterprise_ai_startups (
+            id INTEGER PRIMARY KEY DEFAULT nextval('enterprise_ai_startups_id_seq'),
+            company_name TEXT,
+            product_name TEXT,
+            target_departments TEXT,
+            what_they_do TEXT,
+            target_company_size TEXT,
+            engagement_model TEXT,
+            pricing_signal TEXT,
+            funding_stage TEXT,
+            notable_customers TEXT,
+            source_url TEXT,
+            source_type TEXT,
+            confidence TEXT,
+            collected_at DATE,
+            last_verified DATE,
+            notes TEXT
         )
     """)
     con.close()
@@ -775,5 +813,41 @@ def seed_agent_pattern_links_from_csv(path: str | Path) -> int:
         JOIN agent_patterns p ON p.name = seed_df.pattern_name
     """)
     count = con.execute("SELECT COUNT(*) FROM agent_pattern_links").fetchone()[0]
+    con.close()
+    return count
+
+
+def load_enterprise_ai_startups(filters: dict | None = None) -> pd.DataFrame:
+    con = get_connection()
+    df = con.execute("SELECT * FROM enterprise_ai_startups ORDER BY id").fetchdf()
+    con.close()
+
+    if not filters:
+        return df
+
+    for field, value in filters.items():
+        if value in (None, "", [], ()):
+            continue
+        if isinstance(value, (list, tuple, set)):
+            df = df[df[field].isin(value)]
+        else:
+            df = df[df[field] == value]
+
+    return df
+
+
+def seed_enterprise_ai_startups_from_csv(path: str | Path) -> int:
+    con = get_connection()
+    con.execute("DROP TABLE IF EXISTS enterprise_ai_startups")
+    con.execute("DROP SEQUENCE IF EXISTS enterprise_ai_startups_id_seq")
+    con.close()
+    init_db()
+
+    df = pd.read_csv(path)
+    con = get_connection()
+    con.register("seed_df", df)
+    cols = [c for c in ENTERPRISE_AI_STARTUP_COLUMNS if c in df.columns and c != "id"]
+    con.execute(f"INSERT INTO enterprise_ai_startups ({', '.join(cols)}) SELECT {', '.join(cols)} FROM seed_df")
+    count = con.execute("SELECT COUNT(*) FROM enterprise_ai_startups").fetchone()[0]
     con.close()
     return count

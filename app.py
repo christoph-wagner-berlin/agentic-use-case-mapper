@@ -105,13 +105,14 @@ else:
 
     st.divider()
     st.header("Dig deeper")
-    lcol1, lcol2, lcol3, lcol4, lcol5, lcol6 = st.columns(6)
+    lcol1, lcol2, lcol3, lcol4, lcol5, lcol6, lcol7 = st.columns(7)
     lcol1.page_link("pages/3_Explore_Data.py", label="Explore all AI tooling use cases", icon="🔎")
     lcol2.page_link("pages/2_Trends_and_Industries.py", label="Trends & Industries map", icon="🗺️")
     lcol3.page_link("pages/4_Real_World_Impact.py", label="Real-World Impact", icon="🏢")
     lcol4.page_link("pages/5_Revenue_and_ROI+.py", label="Revenue & ROI+", icon="💵")
     lcol5.page_link("pages/6_Growth_and_Opportunities.py", label="Growth & Opportunities", icon="📈")
     lcol6.page_link("pages/7_Agent_Catalog_and_Patterns.py", label="Agent Catalog & Patterns", icon="🤖")
+    lcol7.page_link("pages/8_Startup_Vendors.py", label="Startup Vendors", icon="🚀")
 
     st.divider()
     st.subheader("AI tooling use cases per category")
