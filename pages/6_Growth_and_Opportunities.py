@@ -9,6 +9,9 @@ import plotly.express as px
 
 from src import storage
 from src.analysis import summaries
+from src.viz import (
+    CATEGORY_ORDER, INDUSTRY_ORDER, DEPARTMENT_ORDER, BRAND_BLUE, SEQUENTIAL_BLUE, ordered_with_extras,
+)
 
 st.set_page_config(page_title="Growth & Opportunities", layout="wide")
 st.title("Growth & Opportunities")
@@ -34,7 +37,7 @@ DIMENSION_CONFIG = {
     "Industry": dict(column="target_industries", explode=True),
     "Department": dict(column="target_departments", explode=True),
 }
-dimension = st.radio("View by", list(DIMENSION_CONFIG.keys()), index=1, horizontal=True)
+dimension = st.radio("View by", list(DIMENSION_CONFIG.keys()), horizontal=True)
 cfg = DIMENSION_CONFIG[dimension]
 group_col = cfg["column"]
 
@@ -57,7 +60,7 @@ fig = px.scatter(
     merged, x="recent_share", y="avg_business_value_score",
     size="total_count", color="maturity_readiness_pct",
     symbol="history_status",
-    color_continuous_scale="Viridis",
+    color_continuous_scale=SEQUENTIAL_BLUE,
     hover_name=group_col,
     hover_data={
         "total_count": True, "years_of_history": True,
@@ -110,9 +113,28 @@ st.caption(
     "applied yet. Sorted by how proven the department pattern is elsewhere."
 )
 opportunities = summaries.opportunity_finder(df)
-opp_industry_filter = st.multiselect("Filter by industry", sorted(opportunities["industry"].unique()))
+opp_industry_filter = st.multiselect(
+    "Filter by industry", ordered_with_extras(INDUSTRY_ORDER, opportunities["industry"].unique())
+)
 opp_display = opportunities[opportunities["industry"].isin(opp_industry_filter)] if opp_industry_filter else opportunities
 st.caption(f"{len(opp_display)} of {len(opportunities)} opportunity pairs shown.")
+
+if not opp_display.empty:
+    opp_heatmap = opp_display.pivot(index="department", columns="industry", values="department_global_avg_score")
+    opp_heatmap = opp_heatmap.reindex(
+        index=ordered_with_extras(DEPARTMENT_ORDER, opp_heatmap.index),
+        columns=ordered_with_extras(INDUSTRY_ORDER, opp_heatmap.columns),
+    )
+    fig = px.imshow(
+        opp_heatmap,
+        labels=dict(x="Industry", y="Department", color="Department's proven value elsewhere"),
+        color_continuous_scale=SEQUENTIAL_BLUE,
+        text_auto=".2f",
+        aspect="auto",
+    )
+    fig.update_layout(height=500)
+    st.plotly_chart(fig, width="stretch")
+
 st.dataframe(
     opp_display, hide_index=True, width="stretch",
     column_config={
@@ -136,6 +158,17 @@ if dimension == "Industry":
     st.caption("`scaled_case_studies` cross-checks the curated maturity field against real company deployments reported at `scaled/production` on the Real-World Impact page.")
 else:
     maturity_display = maturity_df
+
+taxonomy_order = {"Category": CATEGORY_ORDER, "Industry": INDUSTRY_ORDER, "Department": DEPARTMENT_ORDER}[dimension]
+fig = px.bar(
+    maturity_display, x=group_col, y="maturity_readiness_pct",
+    category_orders={group_col: ordered_with_extras(taxonomy_order, maturity_display[group_col])},
+    color_discrete_sequence=[BRAND_BLUE],
+)
+fig.update_traces(texttemplate="%{y:.0%}", textposition="outside")
+fig.update_yaxes(range=[0, 1], tickformat=".0%", title="Maturity readiness")
+fig.update_layout(xaxis_title="")
+st.plotly_chart(fig, width="stretch")
 
 display_cols = [group_col, "total_count", "mature_count", "maturity_readiness_pct"]
 col_config = {

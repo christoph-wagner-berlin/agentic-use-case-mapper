@@ -1,7 +1,10 @@
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 from src import storage
+from src.analysis import summaries
+from src.viz import CATEGORY_ORDER, CATEGORY_COLORS
 
 st.set_page_config(page_title="App Overview", layout="wide")
 st.title("App Overview")
@@ -116,4 +119,9 @@ else:
 
     st.divider()
     st.subheader("AI tooling use cases per category")
-    st.bar_chart(df.groupby("category").size())
+    fig = px.bar(
+        summaries.counts_by_category(df), x="category", y="count", text="count", color="category",
+        category_orders={"category": CATEGORY_ORDER}, color_discrete_map=CATEGORY_COLORS,
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases", showlegend=False)
+    st.plotly_chart(fig, width="stretch")

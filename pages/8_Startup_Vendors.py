@@ -4,8 +4,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
+import plotly.express as px
 
 from src import storage
+from src.analysis import summaries
+from src.viz import DEPARTMENT_ORDER, COMPANY_SIZE_ORDER, BRAND_BLUE, ordered_with_extras
 
 st.set_page_config(page_title="Startup Vendors", layout="wide")
 st.title("Enterprise Workflow AI Startups")
@@ -28,11 +31,11 @@ if startups.empty:
     st.warning("No startup vendors yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
-all_departments = sorted(
-    set(startups["target_departments"].dropna().str.split(";").explode().str.strip()) - {""}
+all_departments = ordered_with_extras(
+    DEPARTMENT_ORDER, set(startups["target_departments"].dropna().str.split(";").explode().str.strip()) - {""}
 )
-all_company_sizes = sorted(
-    set(startups["target_company_size"].dropna().str.split(";").explode().str.strip()) - {""}
+all_company_sizes = ordered_with_extras(
+    COMPANY_SIZE_ORDER, set(startups["target_company_size"].dropna().str.split(";").explode().str.strip()) - {""}
 )
 
 with st.sidebar:
@@ -60,6 +63,19 @@ if (departments or company_sizes) and filtered.empty:
         "No startup vendors tagged for this combination yet -- a real gap in this dataset, not a bug. "
         "Try widening the department or company-size filter."
     )
+
+st.divider()
+st.header("Vendors by department / workflow")
+dept_counts = summaries.department_counts(filtered)
+if dept_counts.empty:
+    st.info("No startup vendors match the current filters.")
+else:
+    fig = px.bar(
+        dept_counts, x="department", y="count", text="count",
+        category_orders={"department": DEPARTMENT_ORDER}, color_discrete_sequence=[BRAND_BLUE],
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="Startup vendors")
+    st.plotly_chart(fig, width="stretch")
 
 st.divider()
 st.header("Startup catalog")

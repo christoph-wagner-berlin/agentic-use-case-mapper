@@ -8,6 +8,10 @@ import plotly.express as px
 
 from src import storage
 from src.analysis import summaries
+from src.viz import (
+    CATEGORY_ORDER, CATEGORY_COLORS, DEPARTMENT_ORDER,
+    MATURITY_ORDER, MATURITY_COLORS, SEQUENTIAL_BLUE,
+)
 
 st.set_page_config(page_title="Analysis", layout="wide")
 st.title("Analysis")
@@ -47,7 +51,10 @@ with tcol2:
 
 st.subheader("Category growth over time")
 cat_by_year = summaries.grouped_counts_by_year(df, "category")
-fig = px.area(cat_by_year, x="year", y="count", color="category")
+fig = px.area(
+    cat_by_year, x="year", y="count", color="category",
+    category_orders={"category": CATEGORY_ORDER}, color_discrete_map=CATEGORY_COLORS,
+)
 fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
 fig.update_xaxes(type="category")
 st.plotly_chart(fig, width="stretch")
@@ -65,23 +72,40 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("AI tooling use cases per category")
     counts = summaries.counts_by_category(df)
-    fig = px.bar(counts, x="category", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
+    fig = px.bar(
+        counts, x="category", y="count", text="count", color="category",
+        category_orders={"category": CATEGORY_ORDER}, color_discrete_map=CATEGORY_COLORS,
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases", showlegend=False)
     st.plotly_chart(fig, width='stretch')
 
 with col2:
-    st.subheader("Average business value score per category")
+    st.subheader("Business value score distribution per category")
     avg_scores = summaries.avg_score_by_category(df)
-    fig = px.bar(avg_scores, x="category", y="avg_business_value_score", text="avg_business_value_score", range_y=[0, 5])
-    fig.update_layout(xaxis_title="", yaxis_title="Avg. score (1-5)")
+    fig = px.box(
+        df, x="category", y="business_value_score", color="category",
+        category_orders={"category": CATEGORY_ORDER}, color_discrete_map=CATEGORY_COLORS,
+        points="outliers",
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="Business value score (1-5)", showlegend=False)
+    fig.update_yaxes(range=[0, 5])
     st.plotly_chart(fig, width='stretch')
 
 col3, col4 = st.columns(2)
 
 with col3:
     st.subheader("AI tooling use cases by maturity")
-    maturity_counts = summaries.counts_by_maturity(df)
-    fig = px.pie(maturity_counts, names="maturity", values="count")
+    maturity_counts = (
+        summaries.counts_by_maturity(df)
+        .set_index("maturity")
+        .reindex(MATURITY_ORDER, fill_value=0)
+        .reset_index()
+    )
+    fig = px.funnel(
+        maturity_counts, x="count", y="maturity", color="maturity",
+        category_orders={"maturity": MATURITY_ORDER}, color_discrete_map=MATURITY_COLORS,
+    )
+    fig.update_layout(yaxis_title="", showlegend=False)
     st.plotly_chart(fig, width='stretch')
 
 with col4:
@@ -97,14 +121,20 @@ dcol1, dcol2 = st.columns(2)
 with dcol1:
     st.subheader("AI tooling use cases per department")
     dept_counts = summaries.department_counts(df)
-    fig = px.bar(dept_counts, x="department", y="count", text="count")
+    fig = px.bar(
+        dept_counts, x="department", y="count", text="count",
+        category_orders={"department": DEPARTMENT_ORDER},
+    )
     fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width='stretch')
 
 with dcol2:
     st.subheader("Average business value score per department")
     dept_scores = summaries.avg_score_by_department(df)
-    fig = px.bar(dept_scores, x="department", y="avg_business_value_score", text="avg_business_value_score", range_y=[0, 5])
+    fig = px.bar(
+        dept_scores, x="department", y="avg_business_value_score", text="avg_business_value_score",
+        range_y=[0, 5], category_orders={"department": DEPARTMENT_ORDER},
+    )
     fig.update_layout(xaxis_title="", yaxis_title="Avg. score (1-5)")
     st.plotly_chart(fig, width='stretch')
 
@@ -121,6 +151,15 @@ fig = px.scatter(
 )
 fig.update_traces(textposition="top center")
 fig.update_layout(xaxis_title="Number of AI tooling use cases", yaxis_title="Avg. business value score", showlegend=False)
+st.plotly_chart(fig, width='stretch')
+
+st.divider()
+st.subheader("Category × maturity composition")
+fig = px.sunburst(
+    df, path=["category", "maturity"], color="business_value_score",
+    color_continuous_scale=SEQUENTIAL_BLUE,
+)
+fig.update_layout(coloraxis_colorbar_title="Avg. score")
 st.plotly_chart(fig, width='stretch')
 
 st.divider()

@@ -8,6 +8,7 @@ import streamlit as st
 import plotly.express as px
 
 from src import storage
+from src.viz import CATEGORY_ORDER, CATEGORY_COLORS, BRAND_BLUE, PRESENCE_SCALE
 
 st.set_page_config(page_title="Agent Catalog & Patterns", layout="wide")
 st.title("Agent Catalog & Patterns")
@@ -74,6 +75,17 @@ st.download_button(
 )
 
 st.divider()
+st.header("Agents by release year")
+release_by_year = agents.groupby(["release_year", "category"]).size().reset_index(name="count")
+fig = px.bar(
+    release_by_year, x="release_year", y="count", color="category",
+    category_orders={"category": CATEGORY_ORDER}, color_discrete_map=CATEGORY_COLORS,
+)
+fig.update_layout(xaxis_title="", yaxis_title="Agents released")
+fig.update_xaxes(type="category")
+st.plotly_chart(fig, width="stretch")
+
+st.divider()
 st.header("Which patterns are common -- and proven -- across these agents")
 pattern_counts = (
     links.groupby("pattern_name").size().reset_index(name="agent_count").sort_values("agent_count", ascending=False)
@@ -83,7 +95,10 @@ pattern_counts = (
 col_chart, col_matrix = st.columns([1, 2])
 with col_chart:
     st.subheader("Pattern adoption")
-    fig = px.bar(pattern_counts, x="agent_count", y="pattern_name", orientation="h", text="agent_count")
+    fig = px.bar(
+        pattern_counts, x="agent_count", y="pattern_name", orientation="h", text="agent_count",
+        color_discrete_sequence=[BRAND_BLUE],
+    )
     fig.update_layout(xaxis_title="Agents using this pattern", yaxis_title="", yaxis=dict(autorange="reversed"))
     st.plotly_chart(fig, width="stretch")
 with col_matrix:
@@ -94,10 +109,19 @@ with col_matrix:
         matrix = links.assign(present=1).pivot_table(
             index="agent_name", columns="pattern_name", values="present", fill_value=0
         )
+        agent_category = agents.set_index("name")["category"]
+        row_order = sorted(
+            matrix.index,
+            key=lambda n: (
+                CATEGORY_ORDER.index(agent_category.get(n)) if agent_category.get(n) in CATEGORY_ORDER else len(CATEGORY_ORDER),
+                n,
+            ),
+        )
+        matrix = matrix.reindex(row_order)
         fig = px.imshow(
             matrix,
             labels=dict(x="Pattern", y="Agent", color="Uses pattern"),
-            color_continuous_scale="Purples",
+            color_continuous_scale=PRESENCE_SCALE,
             aspect="auto",
         )
         fig.update_layout(height=600, coloraxis_showscale=False)

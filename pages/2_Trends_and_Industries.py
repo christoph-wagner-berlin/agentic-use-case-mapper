@@ -9,6 +9,10 @@ import plotly.express as px
 
 from src import storage
 from src.analysis import summaries
+from src.viz import (
+    CATEGORY_ORDER, CATEGORY_COLORS, INDUSTRY_ORDER, DEPARTMENT_ORDER,
+    CATEGORICAL_8, OTHER_COLOR, SEQUENTIAL_BLUE, ordered_with_extras,
+)
 
 st.set_page_config(page_title="Trends & Industries", layout="wide")
 st.title("Trends & Industries")
@@ -60,6 +64,8 @@ fig = px.scatter(
     color="category",
     hover_data=["tool_name", "use_case_title"],
     labels={"first_available": "First available", "business_value_score": "Business value score"},
+    category_orders={"category": CATEGORY_ORDER},
+    color_discrete_map=CATEGORY_COLORS,
 )
 fig.update_yaxes(range=[0.5, 5.5])
 st.plotly_chart(fig, width="stretch")
@@ -71,20 +77,37 @@ icol1, icol2 = st.columns(2)
 with icol1:
     st.subheader("AI tooling use cases per industry")
     ind_counts = summaries.industry_counts(df)
-    fig = px.bar(ind_counts, x="industry", y="count", text="count")
+    fig = px.bar(
+        ind_counts, x="industry", y="count", text="count",
+        category_orders={"industry": INDUSTRY_ORDER},
+    )
     fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width="stretch")
 
 with icol2:
     st.subheader("Average business value score per industry")
     ind_scores = summaries.avg_score_by_industry(df)
-    fig = px.bar(ind_scores, x="industry", y="avg_business_value_score", text="avg_business_value_score", range_y=[0, 5])
+    fig = px.bar(
+        ind_scores, x="industry", y="avg_business_value_score", text="avg_business_value_score",
+        range_y=[0, 5], category_orders={"industry": INDUSTRY_ORDER},
+    )
     fig.update_layout(xaxis_title="", yaxis_title="Avg. score (1-5)")
     st.plotly_chart(fig, width="stretch")
 
 st.subheader("Industry growth over time")
+top_industries = summaries.industry_counts(df).head(7)["industry"].tolist()
 ind_by_year = summaries.grouped_counts_by_year(df, "target_industries", explode=True)
-fig = px.area(ind_by_year, x="year", y="count", color="target_industries")
+ind_by_year["target_industries"] = ind_by_year["target_industries"].where(
+    ind_by_year["target_industries"].isin(top_industries), "Other"
+)
+ind_by_year = ind_by_year.groupby(["year", "target_industries"], as_index=False)["count"].sum()
+industry_area_colors = dict(zip(top_industries, CATEGORICAL_8[:7]))
+industry_area_colors["Other"] = OTHER_COLOR
+fig = px.area(
+    ind_by_year, x="year", y="count", color="target_industries",
+    category_orders={"target_industries": top_industries + ["Other"]},
+    color_discrete_map=industry_area_colors,
+)
 fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases", legend_title="Industry")
 fig.update_xaxes(type="category")
 st.plotly_chart(fig, width="stretch")
@@ -96,7 +119,11 @@ exploded = exploded.explode("industry")
 exploded["industry"] = exploded["industry"].str.strip()
 exploded = exploded[exploded["industry"] != ""]
 pivot = exploded.groupby(["industry", "category"]).size().reset_index(name="count")
-fig = px.bar(pivot, x="industry", y="count", color="category", barmode="stack")
+fig = px.bar(
+    pivot, x="industry", y="count", color="category", barmode="stack",
+    category_orders={"category": CATEGORY_ORDER, "industry": INDUSTRY_ORDER},
+    color_discrete_map=CATEGORY_COLORS,
+)
 fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
 st.plotly_chart(fig, width="stretch")
 
@@ -108,14 +135,20 @@ dcol1, dcol2 = st.columns(2)
 with dcol1:
     st.subheader("AI tooling use cases per department")
     dept_counts = summaries.department_counts(df)
-    fig = px.bar(dept_counts, x="department", y="count", text="count")
+    fig = px.bar(
+        dept_counts, x="department", y="count", text="count",
+        category_orders={"department": DEPARTMENT_ORDER},
+    )
     fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases")
     st.plotly_chart(fig, width="stretch")
 
 with dcol2:
     st.subheader("Average business value score per department")
     dept_scores = summaries.avg_score_by_department(df)
-    fig = px.bar(dept_scores, x="department", y="avg_business_value_score", text="avg_business_value_score", range_y=[0, 5])
+    fig = px.bar(
+        dept_scores, x="department", y="avg_business_value_score", text="avg_business_value_score",
+        range_y=[0, 5], category_orders={"department": DEPARTMENT_ORDER},
+    )
     fig.update_layout(xaxis_title="", yaxis_title="Avg. score (1-5)")
     st.plotly_chart(fig, width="stretch")
 
@@ -128,10 +161,14 @@ st.caption(
 
 matrix = summaries.industry_department_matrix(df)
 heatmap_data = matrix.pivot(index="department", columns="industry", values="count").fillna(0)
+heatmap_data = heatmap_data.reindex(
+    index=ordered_with_extras(DEPARTMENT_ORDER, heatmap_data.index),
+    columns=ordered_with_extras(INDUSTRY_ORDER, heatmap_data.columns),
+)
 fig = px.imshow(
     heatmap_data,
     labels=dict(x="Industry", y="Department", color="AI tooling use cases"),
-    color_continuous_scale="Blues",
+    color_continuous_scale=SEQUENTIAL_BLUE,
     text_auto=True,
     aspect="auto",
 )
@@ -141,9 +178,11 @@ st.plotly_chart(fig, width="stretch")
 st.subheader("Browse by industry × department")
 bcol1, bcol2 = st.columns(2)
 with bcol1:
-    pick_industry = st.selectbox("Industry", sorted(summaries.industry_counts(df)["industry"]))
+    present_industries = set(summaries.industry_counts(df)["industry"])
+    pick_industry = st.selectbox("Industry", ordered_with_extras(INDUSTRY_ORDER, present_industries))
 with bcol2:
-    pick_department = st.selectbox("Department", sorted(summaries.department_counts(df)["department"]))
+    present_departments = set(summaries.department_counts(df)["department"])
+    pick_department = st.selectbox("Department", ordered_with_extras(DEPARTMENT_ORDER, present_departments))
 
 matched = df[
     df["target_industries"].apply(lambda v: pick_industry in [p.strip() for p in str(v).split(";")])
@@ -179,10 +218,24 @@ group_col = cfg["column"]
 
 series_df, summary_df = summaries.growth_forecast(df, group_col, explode=cfg["explode"])
 
+if dimension == "Category":
+    forecast_order = CATEGORY_ORDER
+    forecast_colors = CATEGORY_COLORS
+else:
+    top_groups = summary_df.sort_values("total_count", ascending=False).head(7)[group_col].tolist()
+    series_df = series_df.copy()
+    series_df[group_col] = series_df[group_col].where(series_df[group_col].isin(top_groups), "Other")
+    series_df = series_df.groupby(["year", group_col, "is_forecast"], as_index=False)["count"].sum()
+    forecast_order = top_groups + ["Other"]
+    forecast_colors = dict(zip(top_groups, CATEGORICAL_8[:7]))
+    forecast_colors["Other"] = OTHER_COLOR
+
 fig = px.line(
     series_df, x="year", y="count", color=group_col,
-    line_dash="is_forecast", markers=True,
+    line_dash="is_forecast", line_dash_map={False: "solid", True: "dash"}, markers=True,
     labels={group_col: dimension},
+    category_orders={group_col: forecast_order},
+    color_discrete_map=forecast_colors,
 )
 fig.update_xaxes(type="category")
 fig.update_layout(xaxis_title="", yaxis_title="AI tooling use cases (solid = actual, dashed = projected)")

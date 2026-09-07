@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from src import storage
+from src.viz import CATEGORY_ORDER, INDUSTRY_ORDER, DEPARTMENT_ORDER, COMPANY_SIZE_ORDER, MATURITY_ORDER, ordered_with_extras
 
 st.set_page_config(page_title="Explore Data", layout="wide")
 st.title("Explore AI Tooling Use Cases")
@@ -21,30 +22,24 @@ topics_joined = storage.load_ai_tooling_use_case_topics_joined()
 links_joined = storage.load_ai_tooling_use_case_case_study_links_joined()
 topics_by_use_case = topics_joined.groupby("ai_tooling_use_case_id")["topic_name"].apply(list) if not topics_joined.empty else pd.Series(dtype=object)
 
-all_industries = sorted(
-    set(
-        df["target_industries"].dropna().str.split(";").explode().str.strip()
-    )
-    - {""}
+all_industries = ordered_with_extras(
+    INDUSTRY_ORDER,
+    set(df["target_industries"].dropna().str.split(";").explode().str.strip()) - {""},
 )
-all_departments = sorted(
-    set(
-        df["target_departments"].dropna().str.split(";").explode().str.strip()
-    )
-    - {""}
+all_departments = ordered_with_extras(
+    DEPARTMENT_ORDER,
+    set(df["target_departments"].dropna().str.split(";").explode().str.strip()) - {""},
 )
-all_company_sizes = sorted(
-    set(
-        df["target_company_size"].dropna().str.split(";").explode().str.strip()
-    )
-    - {""}
+all_company_sizes = ordered_with_extras(
+    COMPANY_SIZE_ORDER,
+    set(df["target_company_size"].dropna().str.split(";").explode().str.strip()) - {""},
 )
 
 with st.sidebar:
     st.header("Filters")
-    categories = st.multiselect("Category", sorted(df["category"].unique()))
+    categories = st.multiselect("Category", ordered_with_extras(CATEGORY_ORDER, df["category"].unique()))
     tools = st.multiselect("Tool", sorted(df["tool_name"].unique()))
-    maturities = st.multiselect("Maturity", sorted(df["maturity"].unique()))
+    maturities = st.multiselect("Maturity", ordered_with_extras(MATURITY_ORDER, df["maturity"].unique()))
     industries = st.multiselect("Industry", all_industries)
     departments = st.multiselect("Department / business function", all_departments)
     company_sizes = st.multiselect("Company size", all_company_sizes)

@@ -9,6 +9,11 @@ import plotly.express as px
 
 from src import storage
 from src.analysis import summaries
+from src.viz import (
+    INDUSTRY_ORDER, DEPARTMENT_ORDER, COMPANY_SIZE_ORDER,
+    CONFIDENCE_ORDER, CONFIDENCE_COLORS, DEPLOYMENT_STATUS_ORDER, DEPLOYMENT_STATUS_COLORS,
+    BRAND_BLUE, SEQUENTIAL_BLUE, ordered_with_extras,
+)
 
 st.set_page_config(page_title="Real-World Impact", layout="wide")
 st.title("Real-World Impact: What Companies Are Doing")
@@ -26,24 +31,22 @@ if df.empty:
     st.warning("No case studies yet. Run `python -m scripts.seed_db` to load the curated seed dataset.")
     st.stop()
 
-all_industries = sorted(df["industry"].dropna().unique())
-all_departments = sorted(
-    set(df["target_departments"].dropna().str.split(";").explode().str.strip()) - {""}
+all_industries = ordered_with_extras(INDUSTRY_ORDER, df["industry"].dropna().unique())
+all_departments = ordered_with_extras(
+    DEPARTMENT_ORDER, set(df["target_departments"].dropna().str.split(";").explode().str.strip()) - {""}
 )
 all_gain_types = sorted(
     set(df["gain_type"].dropna().str.split(";").explode().str.strip()) - {""}
 )
-all_company_sizes = sorted(df["company_size_band"].dropna().unique())
+all_company_sizes = ordered_with_extras(COMPANY_SIZE_ORDER, df["company_size_band"].dropna().unique())
 
 with st.sidebar:
     st.header("Filters")
     industries = st.multiselect("Industry", all_industries)
     departments = st.multiselect("Department / business function", all_departments)
     gain_types = st.multiselect("Gain type", all_gain_types)
-    confidences = st.multiselect("Confidence", ["high", "moderate", "directional"])
-    deployment_statuses = st.multiselect(
-        "Deployment status", ["pilot", "scaled/production", "scaled then partially reversed", "discontinued"]
-    )
+    confidences = st.multiselect("Confidence", CONFIDENCE_ORDER)
+    deployment_statuses = st.multiselect("Deployment status", DEPLOYMENT_STATUS_ORDER)
     company_sizes = st.multiselect("Company size", all_company_sizes)
 
 filtered = df.copy()
@@ -87,14 +90,14 @@ tcol1, tcol2 = st.columns(2)
 with tcol1:
     st.subheader("Case studies by year reported")
     yearly = summaries.counts_by_year(filtered, date_column="date_reported")
-    fig = px.bar(yearly, x="year", y="count", text="count")
+    fig = px.bar(yearly, x="year", y="count", text="count", color_discrete_sequence=[BRAND_BLUE])
     fig.update_layout(xaxis_title="", yaxis_title="Case studies")
     fig.update_xaxes(type="category")
     st.plotly_chart(fig, width="stretch")
 with tcol2:
     st.subheader("Cumulative case studies")
     cumulative = summaries.cumulative_by_year(filtered, date_column="date_reported")
-    fig = px.line(cumulative, x="year", y="cumulative_count", markers=True)
+    fig = px.line(cumulative, x="year", y="cumulative_count", markers=True, color_discrete_sequence=[BRAND_BLUE])
     fig.update_layout(xaxis_title="", yaxis_title="Total tracked case studies")
     fig.update_xaxes(type="category")
     st.plotly_chart(fig, width="stretch")
@@ -105,7 +108,11 @@ st.caption(
 
 st.subheader("Deployment status mix by year")
 status_by_year = summaries.grouped_counts_by_year(filtered, "deployment_status", date_column="date_reported")
-fig = px.bar(status_by_year, x="year", y="count", color="deployment_status", barmode="stack")
+fig = px.bar(
+    status_by_year, x="year", y="count", color="deployment_status", barmode="stack",
+    category_orders={"deployment_status": DEPLOYMENT_STATUS_ORDER},
+    color_discrete_map=DEPLOYMENT_STATUS_COLORS,
+)
 fig.update_layout(xaxis_title="", yaxis_title="Case studies", legend_title="Deployment status")
 fig.update_xaxes(type="category")
 st.plotly_chart(fig, width="stretch")
@@ -114,17 +121,28 @@ st.divider()
 ccol1, ccol2, ccol3 = st.columns(3)
 with ccol1:
     st.subheader("By industry")
-    fig = px.bar(summaries.case_studies_by_industry(filtered), x="industry", y="count", text="count")
+    fig = px.bar(
+        summaries.case_studies_by_industry(filtered), x="industry", y="count", text="count",
+        category_orders={"industry": INDUSTRY_ORDER}, color_discrete_sequence=[BRAND_BLUE],
+    )
     fig.update_layout(xaxis_title="", yaxis_title="Case studies")
     st.plotly_chart(fig, width="stretch")
 with ccol2:
     st.subheader("By gain type")
-    fig = px.bar(summaries.case_studies_by_gain_type(filtered), x="gain_type", y="count", text="count")
+    fig = px.bar(
+        summaries.case_studies_by_gain_type(filtered), x="gain_type", y="count", text="count",
+        color_discrete_sequence=[BRAND_BLUE],
+    )
     fig.update_layout(xaxis_title="", yaxis_title="Mentions")
     st.plotly_chart(fig, width="stretch")
 with ccol3:
     st.subheader("By confidence")
-    fig = px.pie(summaries.case_studies_by_confidence(filtered), names="confidence", values="count")
+    fig = px.bar(
+        summaries.case_studies_by_confidence(filtered), y="confidence", x="count", orientation="h",
+        category_orders={"confidence": CONFIDENCE_ORDER}, color="confidence",
+        color_discrete_map=CONFIDENCE_COLORS,
+    )
+    fig.update_layout(xaxis_title="Case studies", yaxis_title="", showlegend=False)
     st.plotly_chart(fig, width="stretch")
 
 st.divider()
@@ -138,10 +156,14 @@ if matrix.empty:
     st.info("No case studies match the current filters.")
 else:
     heatmap_data = matrix.pivot(index="department", columns="industry", values="count").fillna(0)
+    heatmap_data = heatmap_data.reindex(
+        index=ordered_with_extras(DEPARTMENT_ORDER, heatmap_data.index),
+        columns=ordered_with_extras(INDUSTRY_ORDER, heatmap_data.columns),
+    )
     fig = px.imshow(
         heatmap_data,
         labels=dict(x="Industry", y="Department", color="Case studies"),
-        color_continuous_scale="Greens",
+        color_continuous_scale=SEQUENTIAL_BLUE,
         text_auto=True,
         aspect="auto",
     )

@@ -9,6 +9,10 @@ import plotly.express as px
 
 from src import storage
 from src.analysis import summaries
+from src.viz import (
+    INDUSTRY_ORDER, DEPARTMENT_ORDER, COMPANY_SIZE_ORDER,
+    DEPLOYMENT_STATUS_ORDER, DEPLOYMENT_STATUS_COLORS, BRAND_BLUE,
+)
 
 st.set_page_config(page_title="Revenue & ROI+", layout="wide")
 st.title("Revenue & ROI+")
@@ -69,14 +73,14 @@ with tcol1:
     if cum_impact.empty:
         st.info("No case study currently has a quantified $ figure.")
     else:
-        fig = px.line(cum_impact, x="year", y="cumulative_disclosed_usd", markers=True)
+        fig = px.line(cum_impact, x="year", y="cumulative_disclosed_usd", markers=True, color_discrete_sequence=[BRAND_BLUE])
         fig.update_layout(xaxis_title="", yaxis_title="Cumulative USD/year disclosed")
         fig.update_xaxes(type="category")
         st.plotly_chart(fig, width="stretch")
 with tcol2:
     st.subheader("Quantification rate by year")
     qr_by_year = summaries.quantification_rate_by_year(cs)
-    fig = px.bar(qr_by_year, x="year", y="rate", text=qr_by_year["rate"].map(lambda r: f"{r:.0%}"))
+    fig = px.bar(qr_by_year, x="year", y="rate", text=qr_by_year["rate"].map(lambda r: f"{r:.0%}"), color_discrete_sequence=[BRAND_BLUE])
     fig.update_layout(xaxis_title="", yaxis_title="Share of case studies with a $ figure")
     fig.update_yaxes(range=[0, 1], tickformat=".0%")
     fig.update_xaxes(type="category")
@@ -91,7 +95,11 @@ with fcol1:
     if fi_industry.empty:
         st.info("No case study currently has a quantified $ figure for this filter.")
     else:
-        fig = px.bar(fi_industry, x="industry", y="total_financial_impact_usd", text="total_financial_impact_usd")
+        fig = px.bar(
+            fi_industry, x="industry", y="total_financial_impact_usd", text="total_financial_impact_usd",
+            category_orders={"industry": INDUSTRY_ORDER}, color_discrete_sequence=["#1c5cab"],
+        )
+        fig.update_traces(texttemplate="$%{text:.2s}")
         fig.update_layout(xaxis_title="", yaxis_title="USD / year")
         st.plotly_chart(fig, width="stretch")
 with fcol2:
@@ -100,7 +108,11 @@ with fcol2:
     if fi_dept.empty:
         st.info("No case study currently has a quantified $ figure for this filter.")
     else:
-        fig = px.bar(fi_dept, x="department", y="total_financial_impact_usd", text="total_financial_impact_usd")
+        fig = px.bar(
+            fi_dept, x="department", y="total_financial_impact_usd", text="total_financial_impact_usd",
+            category_orders={"department": DEPARTMENT_ORDER}, color_discrete_sequence=["#1c5cab"],
+        )
+        fig.update_traces(texttemplate="$%{text:.2s}")
         fig.update_layout(xaxis_title="", yaxis_title="USD / year")
         st.plotly_chart(fig, width="stretch")
 with fcol3:
@@ -109,14 +121,21 @@ with fcol3:
     if fi_size.empty:
         st.info("No case study currently has a quantified $ figure for this filter.")
     else:
-        fig = px.bar(fi_size, x="company_size_band", y="total_financial_impact_usd", text="total_financial_impact_usd")
+        fig = px.bar(
+            fi_size, x="company_size_band", y="total_financial_impact_usd", text="total_financial_impact_usd",
+            category_orders={"company_size_band": COMPANY_SIZE_ORDER}, color_discrete_sequence=["#1c5cab"],
+        )
+        fig.update_traces(texttemplate="$%{text:.2s}")
         fig.update_layout(xaxis_title="", yaxis_title="USD / year")
         st.plotly_chart(fig, width="stretch")
 with fcol4:
     st.subheader("Deployment status")
     dep_counts = summaries.deployment_status_counts(cs)
-    fig = px.bar(dep_counts, x="deployment_status", y="count", text="count")
-    fig.update_layout(xaxis_title="", yaxis_title="Case studies")
+    fig = px.bar(
+        dep_counts, x="deployment_status", y="count", text="count", color="deployment_status",
+        category_orders={"deployment_status": DEPLOYMENT_STATUS_ORDER}, color_discrete_map=DEPLOYMENT_STATUS_COLORS,
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="Case studies", showlegend=False)
     st.plotly_chart(fig, width="stretch")
 
 st.divider()
