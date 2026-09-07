@@ -23,6 +23,14 @@ categories:
         vendor: Amazon (AWS)
       - name: Replit Agent
         vendor: Replit
+      - name: Google Jules
+        vendor: Google
+      - name: Factory
+        vendor: Factory
+      - name: Amp
+        vendor: Amp Code
+      - name: Warp
+        vendor: Warp
 
   - name: General-purpose/browser agents
     tools:
@@ -36,6 +44,16 @@ categories:
         vendor: Butterfly Effect
       - name: Claude in Chrome
         vendor: Anthropic
+      - name: Perplexity Comet
+        vendor: Perplexity AI
+      - name: Opera Neon
+        vendor: Opera
+      - name: Dia
+        vendor: The Browser Company (Atlassian)
+      - name: Genspark
+        vendor: MainFunc
+      - name: Fellou
+        vendor: Fellou AI
 
   - name: Research/multi-step task agents
     tools:
@@ -51,6 +69,14 @@ categories:
         vendor: Google
       - name: Elicit
         vendor: Elicit
+      - name: Grok DeepSearch
+        vendor: xAI
+      - name: GPT Researcher
+        vendor: Open Source
+      - name: Consensus
+        vendor: Consensus
+      - name: NotebookLM
+        vendor: Google
 
   - name: Enterprise/workflow agents
     tools:
@@ -82,6 +108,16 @@ categories:
         vendor: UiPath
       - name: Gemini Enterprise
         vendor: Google
+      - name: Sierra
+        vendor: Sierra AI
+      - name: n8n
+        vendor: n8n GmbH
+      - name: Decagon
+        vendor: Decagon AI
+      - name: Lindy
+        vendor: Lindy AI
+      - name: Harvey
+        vendor: Harvey AI
 
 # Canonical industry list for target_industries (ai_tooling_use_cases & company_case_studies).
 # Free text is still accepted (extensible per REQUIREMENTS.md NFR2) -- this is the
