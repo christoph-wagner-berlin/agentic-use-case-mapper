@@ -126,6 +126,7 @@ The `ai_tooling_use_cases` table catalogs *types* of agentic-AI applications, no
 | `deployment_status` | enum | `pilot`, `scaled/production`, `scaled then partially reversed`, `discontinued` — not every pilot survives; this tracks that funnel |
 | `company_size_band` | text | This company's size/revenue band (e.g. "SMB (<$10M)", "Enterprise ($1B+)"). Single value, since a case study is about one company. Suggested vocabulary lives in `config/taxonomy.yaml` (`company_size_bands`). |
 | `implementation_cost_usd` | double, nullable | The disclosed cost/investment required to achieve the reported gain, populated **only** when a hard number is genuinely publicly reported. Left `NULL` otherwise (the overwhelming majority of rows) — same "don't invent" policy as `financial_impact_usd`. Paired with it at read time (`src/analysis/summaries.py::net_roi`) to compute a net gain-minus-cost figure, never stored. |
+| `hq_region` | text | This company's real headquarters region (e.g. "North America", "Europe", "China"). Single value, since a case study is about one company. Suggested vocabulary lives in `config/taxonomy.yaml` (`regions`) — the demand-side view of "where is AI already in use," distinct from `enterprise_ai_startups.hq_region` (the supply side). |
 
 This dataset is knowledge-based and **not independently re-verified** — the Real-World Impact page (`pages/4_Real_World_Impact.py`) carries a persistent disclaimer to that effect, and `confidence` is meant to be read before treating any figure as fact.
 
@@ -170,6 +171,7 @@ Seeded from `data/seed/market_context_seed.csv` via `storage.seed_market_context
 | `source_url`, `source_type`, `confidence` | text/enum | Same convention as other tables |
 | `collected_at`, `last_verified` | date | Same convention as `ai_tooling_use_cases` |
 | `notes` | text | Caveats |
+| `hq_region` | text | This vendor's real headquarters region. Suggested vocabulary lives in `config/taxonomy.yaml` (`regions`) — the supply-side view of where AI vendors are based, distinct from `company_case_studies.hq_region` (the demand side). |
 
 Seeded from `data/seed/enterprise_ai_startups_seed.csv` via `storage.seed_enterprise_ai_startups_from_csv()`.
 

@@ -39,3 +39,7 @@ def department_names() -> list[str]:
 
 def company_size_band_names() -> list[str]:
     return load_taxonomy().get("company_size_bands", [])
+
+
+def region_names() -> list[str]:
+    return load_taxonomy().get("regions", [])

@@ -10,7 +10,7 @@ import plotly.express as px
 from src import storage
 from src.analysis import summaries
 from src.viz import (
-    INDUSTRY_ORDER, DEPARTMENT_ORDER, COMPANY_SIZE_ORDER,
+    INDUSTRY_ORDER, DEPARTMENT_ORDER, COMPANY_SIZE_ORDER, REGION_ORDER, REGION_COLORS,
     CONFIDENCE_ORDER, CONFIDENCE_COLORS, DEPLOYMENT_STATUS_ORDER, DEPLOYMENT_STATUS_COLORS,
     BRAND_BLUE, SEQUENTIAL_BLUE, ordered_with_extras,
 )
@@ -39,6 +39,7 @@ all_gain_types = sorted(
     set(df["gain_type"].dropna().str.split(";").explode().str.strip()) - {""}
 )
 all_company_sizes = ordered_with_extras(COMPANY_SIZE_ORDER, df["company_size_band"].dropna().unique())
+all_regions = ordered_with_extras(REGION_ORDER, df["hq_region"].dropna().unique())
 
 with st.sidebar:
     st.header("Filters")
@@ -48,6 +49,7 @@ with st.sidebar:
     confidences = st.multiselect("Confidence", CONFIDENCE_ORDER)
     deployment_statuses = st.multiselect("Deployment status", DEPLOYMENT_STATUS_ORDER)
     company_sizes = st.multiselect("Company size", all_company_sizes)
+    regions = st.multiselect("Region (HQ)", all_regions)
 
 filtered = df.copy()
 if industries:
@@ -70,6 +72,8 @@ if deployment_statuses:
     filtered = filtered[filtered["deployment_status"].isin(deployment_statuses)]
 if company_sizes:
     filtered = filtered[filtered["company_size_band"].isin(company_sizes)]
+if regions:
+    filtered = filtered[filtered["hq_region"].isin(regions)]
 
 st.caption(f"{len(filtered)} of {len(df)} company case studies match the current filters.")
 if company_sizes and filtered.empty:
@@ -146,6 +150,20 @@ with ccol3:
     st.plotly_chart(fig, width="stretch")
 
 st.divider()
+st.header("Where in the world is AI already in use")
+st.caption("Company HQ region for every case study — where these deployments are actually based, not where the tool vendor is from.")
+region_counts = summaries.counts_by_region(filtered)
+if region_counts.empty:
+    st.info("No case studies match the current filters.")
+else:
+    fig = px.bar(
+        region_counts, x="hq_region", y="count", text="count", color="hq_region",
+        category_orders={"hq_region": REGION_ORDER}, color_discrete_map=REGION_COLORS,
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="Case studies", showlegend=False)
+    st.plotly_chart(fig, width="stretch")
+
+st.divider()
 st.header("Industry × Department: who's doing what")
 st.caption(
     "Counts of real-world company case studies per industry/department pair — "
@@ -183,6 +201,7 @@ for _, row in filtered.sort_values("date_reported", ascending=False).iterrows():
     with st.expander(f"{conf_badge} {status_badge} {row['company_name']} — {row['tool_or_platform']} ({row['industry']})"):
         st.markdown(f"**Departments involved:** {row['target_departments'] or 'Not specified'}")
         st.markdown(f"**Company size:** {row.get('company_size_band') or 'Not specified'}")
+        st.markdown(f"**HQ region:** {row.get('hq_region') or 'Not specified'}")
         if row["related_category"]:
             st.markdown(f"**Related category:** {row['related_category']}")
         st.markdown(f"**Deployment status:** {status or 'Not specified'}")

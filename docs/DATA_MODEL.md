@@ -80,6 +80,7 @@ erDiagram
         string deployment_status
         string company_size_band
         double implementation_cost_usd
+        string hq_region
     }
 
     MARKET_CONTEXT {
@@ -188,6 +189,7 @@ erDiagram
         date collected_at
         date last_verified
         string notes
+        string hq_region
     }
 ```
 
@@ -210,6 +212,18 @@ value since one case study is about one company. `implementation_cost_usd` mirro
 case studies disclose both a gain and a cost, so `src/analysis/summaries.py::net_roi()` (surfaced on
 the Revenue & ROI+ page) is expected to render empty. That emptiness is itself the finding: public
 AI case studies report the win far more often than the spend.
+
+**`hq_region` lives only on the two single-company tables, not `ai_tooling_use_cases`.**
+`company_case_studies.hq_region` and `enterprise_ai_startups.hq_region` are both real, verified
+headquarters regions (`config/taxonomy.yaml`'s `regions` list) — one row is one company, so a
+region is a fact. `ai_tooling_use_cases` deliberately has no equivalent field: its grain is
+tool+use-case, not a single deploying entity, and as of this backfill every tracked tool vendor is
+US-headquartered (no China-based vendor is in the catalog), so there's no real per-row geographic
+signal to hang a region on there. As of the last reseed, `company_case_studies.hq_region` skews
+North America (22/35) and Europe (11/35), with one Latin America and one Rest of Asia-Pacific row
+and zero China/India — an honest reflection of which companies' AI deployments happen to be
+publicly documented in English-language sources, not a claim about where AI adoption actually is
+highest worldwide.
 
 **No constraint enforces any of this.**
 DuckDB's `CREATE TABLE` statements declare plain `INTEGER` columns — there isn't a single

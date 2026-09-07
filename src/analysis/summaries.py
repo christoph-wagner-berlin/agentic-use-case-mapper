@@ -22,6 +22,10 @@ def counts_by_maturity(df: pd.DataFrame) -> pd.DataFrame:
     return df.groupby("maturity").size().reset_index(name="count").sort_values("count", ascending=False)
 
 
+def counts_by_region(df: pd.DataFrame) -> pd.DataFrame:
+    return df.groupby("hq_region").size().reset_index(name="count").sort_values("count", ascending=False)
+
+
 def roi_driver_counts(df: pd.DataFrame) -> pd.DataFrame:
     tags = (
         df["roi_drivers"]

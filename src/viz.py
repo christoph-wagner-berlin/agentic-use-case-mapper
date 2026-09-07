@@ -2,7 +2,9 @@
 CVD-safety checks (see scripts/validate_palette.js in that skill). Import from here instead of
 hardcoding colors/order per page."""
 
-from src.taxonomy import category_names, department_names, industry_names, company_size_band_names
+from src.taxonomy import (
+    category_names, department_names, industry_names, company_size_band_names, region_names,
+)
 
 CATEGORY_ORDER = category_names()
 DEPARTMENT_ORDER = department_names()
@@ -39,6 +41,11 @@ SEQUENTIAL_BLUE = [
 # Binary "present/absent" heatmap treatment (the "emphasis" pattern: one accent hue + de-emphasis
 # gray, not a 2-slot categorical pair -- gray is deliberately below the categorical chroma floor).
 PRESENCE_SCALE = [[0, "#f0efec"], [1, BRAND_BLUE]]
+
+
+REGION_ORDER = region_names()
+REGION_COLORS = dict(zip(REGION_ORDER[:7], CATEGORICAL_8[:7]))
+REGION_COLORS["Global/Multi-region"] = OTHER_COLOR
 
 
 def ordered_with_extras(canonical_order, present_values):

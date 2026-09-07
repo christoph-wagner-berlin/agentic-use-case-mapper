@@ -52,6 +52,7 @@ CASE_STUDY_COLUMNS = [
     "deployment_status",
     "company_size_band",
     "implementation_cost_usd",
+    "hq_region",
 ]
 
 MARKET_CONTEXT_COLUMNS = [
@@ -127,6 +128,7 @@ ENTERPRISE_AI_STARTUP_COLUMNS = [
     "collected_at",
     "last_verified",
     "notes",
+    "hq_region",
 ]
 
 
@@ -182,7 +184,8 @@ def init_db() -> None:
             financial_impact_type TEXT,
             deployment_status TEXT,
             company_size_band TEXT,
-            implementation_cost_usd DOUBLE
+            implementation_cost_usd DOUBLE,
+            hq_region TEXT
         );
         CREATE SEQUENCE IF NOT EXISTS market_context_id_seq START 1;
         CREATE TABLE IF NOT EXISTS market_context (
@@ -290,7 +293,8 @@ def init_db() -> None:
             confidence TEXT,
             collected_at DATE,
             last_verified DATE,
-            notes TEXT
+            notes TEXT,
+            hq_region TEXT
         )
     """)
     con.close()

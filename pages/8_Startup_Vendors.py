@@ -8,7 +8,7 @@ import plotly.express as px
 
 from src import storage
 from src.analysis import summaries
-from src.viz import DEPARTMENT_ORDER, COMPANY_SIZE_ORDER, BRAND_BLUE, ordered_with_extras
+from src.viz import DEPARTMENT_ORDER, COMPANY_SIZE_ORDER, REGION_ORDER, REGION_COLORS, BRAND_BLUE, ordered_with_extras
 
 st.set_page_config(page_title="Startup Vendors", layout="wide")
 st.title("Enterprise Workflow AI Startups")
@@ -37,11 +37,13 @@ all_departments = ordered_with_extras(
 all_company_sizes = ordered_with_extras(
     COMPANY_SIZE_ORDER, set(startups["target_company_size"].dropna().str.split(";").explode().str.strip()) - {""}
 )
+all_regions = ordered_with_extras(REGION_ORDER, startups["hq_region"].dropna().unique())
 
 with st.sidebar:
     st.header("Filters")
     departments = st.multiselect("Department / workflow", all_departments)
     company_sizes = st.multiselect("Company size", all_company_sizes)
+    regions = st.multiselect("Region (HQ)", all_regions)
 
 filtered = startups.copy()
 if departments:
@@ -56,6 +58,8 @@ if company_sizes:
             lambda v: any(s in [p.strip() for p in str(v).split(";")] for s in company_sizes)
         )
     ]
+if regions:
+    filtered = filtered[filtered["hq_region"].isin(regions)]
 
 st.caption(f"{len(filtered)} of {len(startups)} startups match the current filters.")
 if (departments or company_sizes) and filtered.empty:
@@ -65,17 +69,31 @@ if (departments or company_sizes) and filtered.empty:
     )
 
 st.divider()
-st.header("Vendors by department / workflow")
-dept_counts = summaries.department_counts(filtered)
-if dept_counts.empty:
-    st.info("No startup vendors match the current filters.")
-else:
-    fig = px.bar(
-        dept_counts, x="department", y="count", text="count",
-        category_orders={"department": DEPARTMENT_ORDER}, color_discrete_sequence=[BRAND_BLUE],
-    )
-    fig.update_layout(xaxis_title="", yaxis_title="Startup vendors")
-    st.plotly_chart(fig, width="stretch")
+vcol1, vcol2 = st.columns(2)
+with vcol1:
+    st.subheader("Vendors by department / workflow")
+    dept_counts = summaries.department_counts(filtered)
+    if dept_counts.empty:
+        st.info("No startup vendors match the current filters.")
+    else:
+        fig = px.bar(
+            dept_counts, x="department", y="count", text="count",
+            category_orders={"department": DEPARTMENT_ORDER}, color_discrete_sequence=[BRAND_BLUE],
+        )
+        fig.update_layout(xaxis_title="", yaxis_title="Startup vendors")
+        st.plotly_chart(fig, width="stretch")
+with vcol2:
+    st.subheader("Vendors by region (HQ)")
+    region_counts = summaries.counts_by_region(filtered)
+    if region_counts.empty:
+        st.info("No startup vendors match the current filters.")
+    else:
+        fig = px.bar(
+            region_counts, x="hq_region", y="count", text="count", color="hq_region",
+            category_orders={"hq_region": REGION_ORDER}, color_discrete_map=REGION_COLORS,
+        )
+        fig.update_layout(xaxis_title="", yaxis_title="Startup vendors", showlegend=False)
+        st.plotly_chart(fig, width="stretch")
 
 st.divider()
 st.header("Startup catalog")
@@ -86,6 +104,7 @@ st.dataframe(
             "product_name",
             "target_departments",
             "target_company_size",
+            "hq_region",
             "engagement_model",
             "funding_stage",
             "confidence",
@@ -98,6 +117,7 @@ st.dataframe(
         "product_name": st.column_config.TextColumn("Product"),
         "target_departments": st.column_config.TextColumn("Department"),
         "target_company_size": st.column_config.TextColumn("Company size"),
+        "hq_region": st.column_config.TextColumn("Region"),
         "engagement_model": st.column_config.TextColumn("Engagement model", width="large"),
         "funding_stage": st.column_config.TextColumn("Funding", width="medium"),
     },
@@ -118,6 +138,7 @@ for _, row in filtered.sort_values("company_name").iterrows():
         st.markdown(row["engagement_model"])
         st.markdown(f"**What they do:** {row['what_they_do']}")
         st.markdown(f"**Built for:** {row['target_company_size']}")
+        st.markdown(f"**HQ region:** {row.get('hq_region') or 'Not specified'}")
         st.markdown(f"**Pricing signal:** {row['pricing_signal']}")
         st.markdown(f"**Funding stage:** {row['funding_stage']}")
         if row.get("notable_customers"):

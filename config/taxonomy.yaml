@@ -164,3 +164,17 @@ company_size_bands:
   - Mid-market ($10M-$100M)
   - Mid-large ($100M-$1B)
   - Enterprise ($1B+)
+
+# Canonical HQ-region list for hq_region (company_case_studies, enterprise_ai_startups) --
+# a company's real headquarters region. Same convention as above: suggested set, still free
+# text under the hood. "Global/Multi-region" is the catch-all for a genuinely decentralized or
+# dual-HQ company.
+regions:
+  - North America
+  - Europe
+  - China
+  - India
+  - Rest of Asia-Pacific
+  - Latin America
+  - Middle East/Africa
+  - Global/Multi-region
