@@ -1,0 +1,3 @@
+need_title,pattern_title,notes
+Technical debt consumes a large share of engineering capacity,Automated large-scale code migration and refactor,Migration/refactor agents address the codebase-modernization slice of technical debt; day-to-day maintenance toil and documentation debt remain largely unaddressed.
+Debugging and observability gap for custom multi-agent systems in production,Multi-agent orchestration framework for building custom production agents,"These frameworks bundle some evaluation/observability tooling (e.g. LangSmith with LangGraph), but cross-framework, production-grade root-cause debugging for multi-agent failures remains an open gap per independent 2025 survey/academic evidence."

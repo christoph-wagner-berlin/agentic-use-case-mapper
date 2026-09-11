@@ -1,0 +1,2 @@
+need_title,tool_name,use_case_title,match_type,notes
+Rising code-review burden and quality risk from growing AI-generated code volume,Claude Code,Automated PR review and inline code fixes,partial,Addresses PR-level review for code passing through this one tool; does not address the broader industry-wide code-churn/quality-drift trend across all AI coding tools documented by GitClear.

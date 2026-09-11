@@ -1,8 +1,9 @@
 # Data Model
 
-Twelve DuckDB tables behind the use-case catalog, company case studies, market stats,
-achievements, the agent/pattern catalog, and the enterprise-AI-startup vendor catalog. Schema
-defined in [`src/storage.py`](../src/storage.py)'s `init_db()`; database file at
+Seventeen DuckDB tables behind the use-case catalog, company case studies, market stats,
+achievements, the agent/pattern catalog, the enterprise-AI-startup vendor catalog, and the
+business-needs/tool-agnostic-pattern catalog. Schema defined in
+[`src/storage.py`](../src/storage.py)'s `init_db()`; database file at
 `data/processed/usecases.duckdb`; seeded from `data/seed/*.csv`.
 
 **None of this is enforced by DuckDB** — every `CREATE TABLE` uses plain `INTEGER` columns with
@@ -13,8 +14,8 @@ functions and by the seed order in `scripts/seed_db.py`, not by the database.
 
 | Category | Tables |
 |---|---|
-| Entity (own primary key) | `ai_tooling_use_cases`, `company_case_studies`, `market_context`, `achievements`, `agents`, `agent_patterns`, `topics`, `enterprise_ai_startups` |
-| Join (composite key of two FKs) | `ai_tooling_use_case_topics`, `ai_tooling_use_case_case_study_links`, `agent_pattern_links` |
+| Entity (own primary key) | `ai_tooling_use_cases`, `company_case_studies`, `market_context`, `achievements`, `agents`, `agent_patterns`, `topics`, `enterprise_ai_startups`, `business_needs`, `tool_agnostic_use_cases` |
+| Join (composite key of two FKs) | `ai_tooling_use_case_topics`, `ai_tooling_use_case_case_study_links`, `agent_pattern_links`, `business_need_use_case_links`, `business_need_pattern_links`, `pattern_use_case_links` |
 | Derived (rebuilt from other tables) | `sources` |
 | External config (not a DB table) | `config/taxonomy.yaml` — categories → tools, industries, departments, company_size_bands; loaded by `src/taxonomy.py` for dropdown suggestions only, not enforced |
 
@@ -35,6 +36,14 @@ erDiagram
     AI_TOOLING_USE_CASES ||..o{ SOURCES : "cited in, derived"
     COMPANY_CASE_STUDIES ||..o{ SOURCES : "cited in, derived"
     MARKET_CONTEXT ||..o{ SOURCES : "cited in, derived"
+    BUSINESS_NEEDS ||..o{ SOURCES : "cited in, derived"
+    TOOL_AGNOSTIC_USE_CASES ||..o{ SOURCES : "cited in, derived"
+    BUSINESS_NEEDS ||--o{ BUSINESS_NEED_USE_CASE_LINKS : "directly addressed by"
+    AI_TOOLING_USE_CASES ||--o{ BUSINESS_NEED_USE_CASE_LINKS : "directly addresses"
+    BUSINESS_NEEDS ||--o{ BUSINESS_NEED_PATTERN_LINKS : "matches"
+    TOOL_AGNOSTIC_USE_CASES ||--o{ BUSINESS_NEED_PATTERN_LINKS : "matched by"
+    TOOL_AGNOSTIC_USE_CASES ||--o{ PATTERN_USE_CASE_LINKS : "implemented by"
+    AI_TOOLING_USE_CASES ||--o{ PATTERN_USE_CASE_LINKS : "implements"
 
     AI_TOOLING_USE_CASES {
         int id PK
@@ -191,9 +200,95 @@ erDiagram
         string notes
         string hq_region
     }
+
+    BUSINESS_NEEDS {
+        int id PK
+        string need_title
+        string need_description
+        string status "unmet | partially addressed | addressed"
+        int business_value_score
+        string business_value_rationale
+        string source_url
+        string source_type
+        string confidence
+        date collected_at
+        date last_verified
+        string notes
+        string target_industries
+        string target_departments
+        string target_company_size
+    }
+
+    TOOL_AGNOSTIC_USE_CASES {
+        int id PK
+        string category
+        string use_case_title
+        string use_case_description
+        string target_users
+        string maturity
+        int business_value_score
+        string business_value_rationale
+        string roi_drivers
+        string example_companies
+        string source_url
+        string source_type
+        date collected_at
+        date last_verified
+        string notes
+        date first_available
+        string target_industries
+        string target_departments
+        string target_company_size
+    }
+
+    BUSINESS_NEED_USE_CASE_LINKS {
+        int business_need_id PK "references BUSINESS_NEEDS"
+        int ai_tooling_use_case_id PK "references AI_TOOLING_USE_CASES"
+        string match_type
+        string notes
+    }
+
+    BUSINESS_NEED_PATTERN_LINKS {
+        int business_need_id PK "references BUSINESS_NEEDS"
+        int tool_agnostic_use_case_id PK "references TOOL_AGNOSTIC_USE_CASES"
+        string notes
+    }
+
+    PATTERN_USE_CASE_LINKS {
+        int tool_agnostic_use_case_id PK "references TOOL_AGNOSTIC_USE_CASES"
+        int ai_tooling_use_case_id PK "references AI_TOOLING_USE_CASES"
+        string match_type
+        string notes
+    }
 ```
 
 ## Field notes
+
+**Three tiers of specificity: need → pattern → tool-mapped use case.**
+`ai_tooling_use_cases` requires a `tool_name` on every row — there was previously no way to
+record a business problem that no cataloged tool addresses yet, or a proven solution *shape* that
+several different tools implement. Two tables fix that, both consumed by
+`pages/9_Business_Needs_and_Patterns.py`:
+- `business_needs` — a raw business problem/opportunity. No `category`/`maturity`/`tool_name`,
+  because those describe a solution, not the problem itself. `status` (`unmet` / `partially
+  addressed` / `addressed`) is hand-set, the same convention as `deployment_status` elsewhere —
+  it is *not* derived from whether a link row exists.
+- `tool_agnostic_use_cases` — a generic, proven use-case pattern (e.g. "AI-assisted code review"),
+  independent of any vendor. Its columns are deliberately identical to
+  `ai_tooling_use_cases` minus `tool_name`/`vendor`, so every generic function in
+  `src/analysis/summaries.py` (`counts_by_category`, `avg_score_by_*`,
+  `industry_department_matrix`, `opportunity_finder`, `growth_forecast`, `maturity_readiness`)
+  works unmodified on either table's dataframe.
+
+Three join tables connect them into the existing graph: `business_need_pattern_links` (a need
+matches a generic pattern), `pattern_use_case_links` (a pattern is implemented by one or more
+specific tool-mapped use cases), and `business_need_use_case_links` (a shortcut for a need solved
+directly by a specific tool, skipping the pattern step). As of the initial build, all five of
+these new tables start **empty** — schema and seeding wired up, ready for real data to be added to
+`data/seed/business_needs_seed.csv` / `tool_agnostic_use_cases_seed.csv` and their three link
+CSVs. Unlike `ai_tooling_use_case_case_study_links_seed.csv` (which joins on raw ids),
+the three new link CSVs join on human-readable titles/names — the same convention
+`agent_pattern_links_seed.csv` uses — since these are meant to be hand-authored later.
 
 **`enterprise_ai_startups` tracks vendors, not customers — deliberately unlinked.**
 `company_case_studies` tracks companies that *use* AI tools; `enterprise_ai_startups` tracks the
@@ -235,22 +330,29 @@ functions and by the seed order in `scripts/seed_db.py`, not by the database.
 `src/taxonomy.py` purely for dropdown suggestions on `category`, `target_industries`, and
 `target_departments`. None of it is enforced — free text is accepted everywhere.
 
-**`sources` only knows about three tables.**
+**`sources` only knows about five tables.**
 `backfill_sources_from_existing()` rebuilds `sources` from scratch every run, exploding the
-semicolon-separated `source_url`/`source_type` on `ai_tooling_use_cases`, `company_case_studies`, and
-`market_context`. `achievements`, `agents`, and `agent_patterns` carry the same `source_url`
-column but are never included.
+semicolon-separated `source_url`/`source_type` on `ai_tooling_use_cases`, `company_case_studies`,
+`market_context`, `business_needs`, and `tool_agnostic_use_cases`. `achievements`, `agents`, and
+`agent_patterns` carry the same `source_url` column but are never included. Because it rebuilds
+from whatever is already seeded, `scripts/seed_db.py` calls it **last**, after every other table
+(including the two new ones and their links) has been seeded.
 
-**Two seed files link by name, not id.**
-`ai_tooling_use_case_topics_seed.csv` carries `topic_name` and `agent_pattern_links_seed.csv` carries
-`agent_name`/`pattern_name` — `storage.py` resolves both to ids with a SQL join at seed time, so
-`topics` and `agents`/`agent_patterns` must already be seeded first.
+**Five seed files link by name, not id.**
+`ai_tooling_use_case_topics_seed.csv` carries `topic_name`, `agent_pattern_links_seed.csv` carries
+`agent_name`/`pattern_name`, and the three new business-need/pattern link CSVs
+(`business_need_use_case_links_seed.csv`, `business_need_pattern_links_seed.csv`,
+`pattern_use_case_links_seed.csv`) carry `need_title`/`pattern_title`/`tool_name`+`use_case_title`
+— `storage.py` resolves all of these to ids with a SQL join at seed time, so their parent tables
+must already be seeded first.
 
 **Most of this isn't on screen yet.**
 `ai_tooling_use_case_topics` and `ai_tooling_use_case_case_study_links` are rendered via their
 joined loaders in `pages/3_Explore_Data.py` (the "Topics" column and "Related case studies"
-section), and `agent_pattern_links` in `pages/7_Agent_Catalog_and_Patterns.py`. `achievements` and
-`sources` still have loader functions in `storage.py` with no page consuming them.
+section), `agent_pattern_links` in `pages/7_Agent_Catalog_and_Patterns.py`, and
+`business_need_pattern_links`/`business_need_use_case_links`/`pattern_use_case_links` in
+`pages/9_Business_Needs_and_Patterns.py`. `achievements` and `sources` still have loader functions
+in `storage.py` with no page consuming them.
 
 ---
 

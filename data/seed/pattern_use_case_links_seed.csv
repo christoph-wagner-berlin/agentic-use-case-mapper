@@ -1,0 +1,18 @@
+pattern_title,tool_name,use_case_title,match_type,notes
+Terminal-native autonomous coding agent for local repositories,Aider,Git-native pair programming from the terminal,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Terminal-native autonomous coding agent for local repositories,OpenAI Codex CLI,Terminal coding agent for local repos,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Terminal-native autonomous coding agent for local repositories,Warp,Agentic terminal that plans and executes multi-step CLI workflows,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Terminal-native autonomous coding agent for local repositories,Cline,Autonomous terminal and file-edit coding agent,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Spec-driven agentic feature development,GitHub Copilot Workspace,Spec-driven feature scaffolding,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Spec-driven agentic feature development,Kiro,Spec-driven feature development from a written specification,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+End-to-end autonomous software engineering agent,Devin,End-to-end autonomous engineering tasks,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+End-to-end autonomous software engineering agent,Devin Desktop,IDE-embedded autonomous feature implementation,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+End-to-end autonomous software engineering agent,Factory,Coordinator agent that dispatches role-scoped 'Droids' across the SDLC,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+End-to-end autonomous software engineering agent,Replit Agent,Building and deploying a full application from a natural-language prompt,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Multi-agent orchestration framework for building custom production agents,LangChain/LangGraph,Stateful multi-agent workflow orchestration (LangGraph),exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Multi-agent orchestration framework for building custom production agents,AutoGen,Multi-agent conversation framework for enterprise automation,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Multi-agent orchestration framework for building custom production agents,Claude Agent SDK,Custom production agents built on Claude Code's runtime,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Automated large-scale code migration and refactor,Claude Code,Large-scale codebase migration and refactor,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+Automated large-scale code migration and refactor,Factory,Headless CI execution for large-scale refactors and migrations,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+AI-assisted onboarding to unfamiliar or legacy codebases,Cursor,AI-assisted onboarding to unfamiliar codebases,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.
+AI-assisted onboarding to unfamiliar or legacy codebases,Devin,Onboarding automation for legacy codebases,exact,Linked this session (2026-09-11) as a real implementation of this tool-agnostic pattern.

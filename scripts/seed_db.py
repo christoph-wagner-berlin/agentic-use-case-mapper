@@ -19,6 +19,11 @@ AGENTS_SEED_CSV = SEED_DIR / "agents_seed.csv"
 AGENT_PATTERNS_SEED_CSV = SEED_DIR / "agent_patterns_seed.csv"
 AGENT_PATTERN_LINKS_SEED_CSV = SEED_DIR / "agent_pattern_links_seed.csv"
 ENTERPRISE_AI_STARTUPS_SEED_CSV = SEED_DIR / "enterprise_ai_startups_seed.csv"
+BUSINESS_NEEDS_SEED_CSV = SEED_DIR / "business_needs_seed.csv"
+TOOL_AGNOSTIC_USE_CASES_SEED_CSV = SEED_DIR / "tool_agnostic_use_cases_seed.csv"
+BUSINESS_NEED_USE_CASE_LINKS_SEED_CSV = SEED_DIR / "business_need_use_case_links_seed.csv"
+BUSINESS_NEED_PATTERN_LINKS_SEED_CSV = SEED_DIR / "business_need_pattern_links_seed.csv"
+PATTERN_USE_CASE_LINKS_SEED_CSV = SEED_DIR / "pattern_use_case_links_seed.csv"
 
 
 def main() -> None:
@@ -39,8 +44,6 @@ def main() -> None:
     print(f"Seeded {achievements_count} achievements into {storage.DB_PATH}")
     links_count = storage.seed_ai_tooling_use_case_case_study_links_from_csv(LINKS_SEED_CSV)
     print(f"Seeded {links_count} use-case/case-study links into {storage.DB_PATH}")
-    sources_count = storage.backfill_sources_from_existing()
-    print(f"Derived {sources_count} normalized source rows into {storage.DB_PATH}")
 
     agents_count = storage.seed_agents_from_csv(AGENTS_SEED_CSV)
     print(f"Seeded {agents_count} agents into {storage.DB_PATH}")
@@ -51,6 +54,24 @@ def main() -> None:
 
     startups_count = storage.seed_enterprise_ai_startups_from_csv(ENTERPRISE_AI_STARTUPS_SEED_CSV)
     print(f"Seeded {startups_count} enterprise AI startups into {storage.DB_PATH}")
+
+    business_needs_count = storage.seed_business_needs_from_csv(BUSINESS_NEEDS_SEED_CSV)
+    print(f"Seeded {business_needs_count} business needs into {storage.DB_PATH}")
+    tool_agnostic_count = storage.seed_tool_agnostic_use_cases_from_csv(TOOL_AGNOSTIC_USE_CASES_SEED_CSV)
+    print(f"Seeded {tool_agnostic_count} tool-agnostic use case patterns into {storage.DB_PATH}")
+
+    # Depends on business_needs/tool_agnostic_use_cases/ai_tooling_use_cases already being seeded above.
+    need_use_case_links_count = storage.seed_business_need_use_case_links_from_csv(BUSINESS_NEED_USE_CASE_LINKS_SEED_CSV)
+    print(f"Seeded {need_use_case_links_count} business-need/use-case links into {storage.DB_PATH}")
+    need_pattern_links_count = storage.seed_business_need_pattern_links_from_csv(BUSINESS_NEED_PATTERN_LINKS_SEED_CSV)
+    print(f"Seeded {need_pattern_links_count} business-need/pattern links into {storage.DB_PATH}")
+    pattern_use_case_links_count = storage.seed_pattern_use_case_links_from_csv(PATTERN_USE_CASE_LINKS_SEED_CSV)
+    print(f"Seeded {pattern_use_case_links_count} pattern/use-case links into {storage.DB_PATH}")
+
+    # Runs last: rebuilds `sources` from every table's source_url/source_type, so everything above
+    # (including business_needs/tool_agnostic_use_cases) must already be seeded.
+    sources_count = storage.backfill_sources_from_existing()
+    print(f"Derived {sources_count} normalized source rows into {storage.DB_PATH}")
 
 
 if __name__ == "__main__":
